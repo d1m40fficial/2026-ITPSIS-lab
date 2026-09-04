@@ -1,0 +1,7 @@
+field;value
+variant;24
+code;SA24
+subject_area;Сервис удалённого доступа
+system_code;ITPSIS-SA24
+critical_function;защищённое подключение к учебной сети
+assets;туннели, сертификаты, журнал сеансов

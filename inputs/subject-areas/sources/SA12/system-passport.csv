@@ -1,0 +1,7 @@
+field;value
+variant;12
+code;SA12
+subject_area;Синхронизация реестра студентов
+system_code;ITPSIS-SA12
+critical_function;передача актуальных учётных записей
+assets;реестр, пакеты, контроль целостности

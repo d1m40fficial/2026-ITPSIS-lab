@@ -1,0 +1,31 @@
+variant;code;subject_area;system_code;profile;critical_function;pack
+1;SA01;Электронное расписание;ITPSIS-SA01;1;публикация и просмотр актуального расписания;inputs/subject-areas/packs/SA01.zip
+2;SA02;Личный кабинет студента;ITPSIS-SA02;1;вход и доступ к учебным данным;inputs/subject-areas/packs/SA02.zip
+3;SA03;Портал приёмной комиссии;ITPSIS-SA03;1;подача и отслеживание заявления;inputs/subject-areas/packs/SA03.zip
+4;SA04;Электронная библиотека;ITPSIS-SA04;1;поиск и открытие учебных изданий;inputs/subject-areas/packs/SA04.zip
+5;SA05;Портал учебных материалов;ITPSIS-SA05;1;чтение и загрузка файлов курса;inputs/subject-areas/packs/SA05.zip
+6;SA06;Сервис учебной печати;ITPSIS-SA06;2;приём и печать заданий;inputs/subject-areas/packs/SA06.zip
+7;SA07;Бронирование аудиторий;ITPSIS-SA07;2;создание и проверка брони;inputs/subject-areas/packs/SA07.zip
+8;SA08;Служба Service Desk;ITPSIS-SA08;2;регистрация и обработка обращений;inputs/subject-areas/packs/SA08.zip
+9;SA09;Учёт компьютерного оборудования;ITPSIS-SA09;2;поиск актива и истории его состояния;inputs/subject-areas/packs/SA09.zip
+10;SA10;Система заявок на доступ;ITPSIS-SA10;2;согласование и выдача прав;inputs/subject-areas/packs/SA10.zip
+11;SA11;Шина интеграции LMS;ITPSIS-SA11;3;доставка событий между учебными системами;inputs/subject-areas/packs/SA11.zip
+12;SA12;Синхронизация реестра студентов;ITPSIS-SA12;3;передача актуальных учётных записей;inputs/subject-areas/packs/SA12.zip
+13;SA13;Сервис экспорта отчётов;ITPSIS-SA13;3;формирование и выдача отчёта;inputs/subject-areas/packs/SA13.zip
+14;SA14;Шлюз учебных уведомлений;ITPSIS-SA14;3;своевременная доставка уведомлений;inputs/subject-areas/packs/SA14.zip
+15;SA15;Очередь преобразования документов;ITPSIS-SA15;3;преобразование и сохранение учебного файла;inputs/subject-areas/packs/SA15.zip
+16;SA16;Компьютерный класс;ITPSIS-SA16;4;вход пользователя и запуск учебной среды;inputs/subject-areas/packs/SA16.zip
+17;SA17;Рабочее место преподавателя;ITPSIS-SA17;4;доступ к учебным материалам и ведомостям;inputs/subject-areas/packs/SA17.zip
+18;SA18;Медиааудитория;ITPSIS-SA18;4;запуск презентации и вывод медиа;inputs/subject-areas/packs/SA18.zip
+19;SA19;Экзаменационный терминал;ITPSIS-SA19;4;запуск и сдача учебного задания;inputs/subject-areas/packs/SA19.zip
+20;SA20;Мобильное учебное рабочее место;ITPSIS-SA20;4;защищённый доступ к учебным сервисам;inputs/subject-areas/packs/SA20.zip
+21;SA21;Шлюз сети кампуса;ITPSIS-SA21;5;маршрутизация разрешённого трафика;inputs/subject-areas/packs/SA21.zip
+22;SA22;Сетевой экран учебной сети;ITPSIS-SA22;5;фильтрация и журналирование сетевых потоков;inputs/subject-areas/packs/SA22.zip
+23;SA23;Контроллер Wi-Fi;ITPSIS-SA23;5;подключение авторизованных учебных устройств;inputs/subject-areas/packs/SA23.zip
+24;SA24;Сервис удалённого доступа;ITPSIS-SA24;5;защищённое подключение к учебной сети;inputs/subject-areas/packs/SA24.zip
+25;SA25;Узел мониторинга;ITPSIS-SA25;5;сбор метрик и формирование сигналов;inputs/subject-areas/packs/SA25.zip
+26;SA26;Файловое хранилище;ITPSIS-SA26;6;чтение и запись учебных файлов;inputs/subject-areas/packs/SA26.zip
+27;SA27;Сервер резервного копирования;ITPSIS-SA27;6;создание и восстановление копий;inputs/subject-areas/packs/SA27.zip
+28;SA28;Служба идентификации;ITPSIS-SA28;6;проверка учётной записи и выдача сеанса;inputs/subject-areas/packs/SA28.zip
+29;SA29;Электронный архив документов;ITPSIS-SA29;6;поиск и выдача неизменённого документа;inputs/subject-areas/packs/SA29.zip
+30;SA30;Хранилище результатов аттестации;ITPSIS-SA30;6;запись и выдача подтверждённых результатов;inputs/subject-areas/packs/SA30.zip

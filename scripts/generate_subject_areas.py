@@ -1,0 +1,236 @@
+from __future__ import annotations
+
+import csv
+import io
+import json
+import shutil
+import zipfile
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+DATA_FILE = ROOT / "src" / "data" / "subject-areas.json"
+LABS_FILE = ROOT / "src" / "data" / "labs.json"
+INPUT_ROOT = ROOT / "inputs" / "subject-areas"
+SOURCE_ROOT = INPUT_ROOT / "sources"
+PACK_ROOT = ROOT / "public" / "inputs" / "subject-areas" / "packs"
+
+
+PROFILE_VALUES = [
+    (
+        "Публичные сервисы первой линии",
+        ["P1 — круглосуточно; остальные — 08:00–20:00", "P1 — 10 минут; P2 — 30 минут", "P1 — 60 минут; P2 — 4 часа", "P1 — сразу; P2 — через 45 минут", "оперативные записи — 180 дней"],
+    ),
+    (
+        "Внутренние рабочие сервисы",
+        ["по будням 08:00–20:00", "P1 — 15 минут; P2 — 1 час", "P1 — 2 часа; P2 — 8 часов", "P1 — сразу; P2 — через 2 часа", "карточки и журналы — 90 дней"],
+    ),
+    (
+        "Учётные и интеграционные сервисы",
+        ["круглосуточный автоматический контроль", "P1 — 10 минут; P2 — 30 минут", "P1 — 90 минут; P2 — 6 часов", "при повторе 3 раза или задержке 30 минут", "трассировки и карточки — 180 дней"],
+    ),
+    (
+        "Автоматизированные рабочие места",
+        ["по расписанию учебных площадок", "P1 — 20 минут; P2 — 2 часа", "P1 — 4 часа; P2 — следующий рабочий день", "после двух безуспешных проверок L1", "карточки — 90 дней; состояние — 30 дней"],
+    ),
+    (
+        "Сетевые и защитные сервисы",
+        ["круглосуточно", "P1 — 5 минут; P2 — 20 минут", "P1 — 45 минут; P2 — 3 часа", "при потере резервирования или повторном отказе", "конфигурации и события — 365 дней"],
+    ),
+    (
+        "Критичные сервисы данных и доступа",
+        ["круглосуточно с дежурной сменой", "P1 — 5 минут; P2 — 15 минут", "P1 — 30 минут; P2 — 2 часа", "P1 сразу владельцу и техническому руководителю", "решения и технические журналы — 365 дней"],
+    ),
+]
+
+CHARACTERISTICS = [
+    ("C1", "Режим поддержки", "Обращения по системе «{system}» принимаются и контролируются в установленном окне поддержки."),
+    ("C2", "Цель реакции", "Назначенный специалист подтверждает начало работы с обращением по системе «{system}» в установленный срок."),
+    ("C3", "Цель восстановления", "Критичная функция системы «{system}» должна быть возвращена в срок, заданный приоритетом."),
+    ("C4", "Порог эскалации", "Обращение по системе «{system}» передаётся следующей линии при наступлении указанного условия."),
+    ("C5", "Хранение доказательств", "Карточки, решения и журналы системы «{system}» хранятся в течение установленного периода."),
+]
+
+AREAS = [
+    ("Электронное расписание", "публикация и просмотр актуального расписания", ["расписание", "учётные записи", "журналы"]),
+    ("Личный кабинет студента", "вход и доступ к учебным данным", ["профили", "задания", "оценки"]),
+    ("Портал приёмной комиссии", "подача и отслеживание заявления", ["заявления", "документы", "статусы"]),
+    ("Электронная библиотека", "поиск и открытие учебных изданий", ["каталог", "лицензии", "история доступа"]),
+    ("Портал учебных материалов", "чтение и загрузка файлов курса", ["файлы", "метаданные", "версии"]),
+    ("Сервис учебной печати", "приём и печать заданий", ["очередь", "принтеры", "журнал печати"]),
+    ("Бронирование аудиторий", "создание и проверка брони", ["аудитории", "брони", "календарь"]),
+    ("Служба Service Desk", "регистрация и обработка обращений", ["обращения", "SLA", "комментарии"]),
+    ("Учёт компьютерного оборудования", "поиск актива и истории его состояния", ["активы", "перемещения", "инвентаризация"]),
+    ("Система заявок на доступ", "согласование и выдача прав", ["заявки", "роли", "согласования"]),
+    ("Шина интеграции LMS", "доставка событий между учебными системами", ["события", "очереди", "повторы"]),
+    ("Синхронизация реестра студентов", "передача актуальных учётных записей", ["реестр", "пакеты", "контроль целостности"]),
+    ("Сервис экспорта отчётов", "формирование и выдача отчёта", ["задания экспорта", "файлы", "статусы"]),
+    ("Шлюз учебных уведомлений", "своевременная доставка уведомлений", ["сообщения", "каналы", "повторы"]),
+    ("Очередь преобразования документов", "преобразование и сохранение учебного файла", ["очередь", "исходные файлы", "результаты"]),
+    ("Компьютерный класс", "вход пользователя и запуск учебной среды", ["рабочие станции", "образы", "профили"]),
+    ("Рабочее место преподавателя", "доступ к учебным материалам и ведомостям", ["документы", "профиль", "журналы"]),
+    ("Медиааудитория", "запуск презентации и вывод медиа", ["контроллер", "медиафайлы", "проектор"]),
+    ("Экзаменационный терминал", "запуск и сдача учебного задания", ["сеансы", "ответы", "журнал контроля"]),
+    ("Мобильное учебное рабочее место", "защищённый доступ к учебным сервисам", ["устройство", "профиль", "токены"]),
+    ("Шлюз сети кампуса", "маршрутизация разрешённого трафика", ["маршруты", "интерфейсы", "потоки"]),
+    ("Сетевой экран учебной сети", "фильтрация и журналирование сетевых потоков", ["правила", "зоны", "журнал потоков"]),
+    ("Контроллер Wi-Fi", "подключение авторизованных учебных устройств", ["точки доступа", "клиенты", "сеансы"]),
+    ("Сервис удалённого доступа", "защищённое подключение к учебной сети", ["туннели", "сертификаты", "журнал сеансов"]),
+    ("Узел мониторинга", "сбор метрик и формирование сигналов", ["метрики", "правила", "уведомления"]),
+    ("Файловое хранилище", "чтение и запись учебных файлов", ["файлы", "права", "журнал операций"]),
+    ("Сервер резервного копирования", "создание и восстановление копий", ["задания", "копии", "каталог носителей"]),
+    ("Служба идентификации", "проверка учётной записи и выдача сеанса", ["учётные записи", "роли", "сеансы"]),
+    ("Электронный архив документов", "поиск и выдача неизменённого документа", ["документы", "метаданные", "подписи"]),
+    ("Хранилище результатов аттестации", "запись и выдача подтверждённых результатов", ["результаты", "протоколы", "журнал изменений"]),
+]
+
+def csv_text(header: list[str], rows: list[list[object]]) -> str:
+    stream = io.StringIO(newline="")
+    writer = csv.writer(stream, delimiter=";", lineterminator="\n")
+    writer.writerow(header)
+    writer.writerows(rows)
+    return stream.getvalue()
+
+
+def profiles() -> list[dict[str, object]]:
+    result = []
+    for profile_id, (title, values) in enumerate(PROFILE_VALUES, 1):
+        characteristics = [
+            {"code": code, "name": name, "value": value, "example": example}
+            for (code, name, example), value in zip(CHARACTERISTICS, values, strict=True)
+        ]
+        result.append({
+            "id": profile_id,
+            "title": title,
+            "variantRange": f"{(profile_id - 1) * 5 + 1:02d}–{profile_id * 5:02d}",
+            "characteristics": characteristics,
+        })
+    return result
+
+
+def areas() -> list[dict[str, object]]:
+    result = []
+    for area_id, (title, critical_function, assets) in enumerate(AREAS, 1):
+        code = f"SA{area_id:02d}"
+        result.append({
+            "id": area_id,
+            "code": code,
+            "title": title,
+            "systemCode": f"ITPSIS-{code}",
+            "description": f"Учебная предметная область «{title}»; все имена и события синтетические.",
+            "criticalFunction": critical_function,
+            "assets": assets,
+            "profileId": (area_id - 1) // 5 + 1,
+            "pack": f"inputs/subject-areas/packs/{code}.zip",
+        })
+    return result
+
+
+def personalize(value: object, area: dict[str, object]) -> object:
+    if isinstance(value, str):
+        return (
+            value.replace("{system}", str(area["systemCode"]))
+            .replace("{area}", str(area["title"]))
+            .replace("{function}", str(area["criticalFunction"]))
+        )
+    if isinstance(value, list):
+        return [personalize(item, area) for item in value]
+    if isinstance(value, dict):
+        return {key: personalize(item, area) for key, item in value.items()}
+    return value
+
+
+def markdown_source(lab: dict[str, object], area: dict[str, object], profile: dict[str, object]) -> str:
+    source = personalize(lab["sourceData"], area)
+    situation = personalize(lab["situation"], area)
+    lines = [
+        f"# {area['code']} · {lab['semester']} семестр · ЛР {int(lab['semesterLabNumber']):02d} · {lab['title']}", "",
+        f"**Предметная область:** {area['title']}",
+        f"**Система:** `{area['systemCode']}`",
+        f"**Критичная функция:** {area['criticalFunction']}",
+        f"**Профиль:** {profile['title']} (варианты {profile['variantRange']})", "",
+        "## Рабочая ситуация", "", str(situation), "",
+        "## Пять характеристик профиля", "",
+        "| Код | Характеристика | Значение |", "| --- | --- | --- |",
+    ]
+    for item in profile["characteristics"]:
+        lines.append(f"| {item['code']} | {item['name']} | {item['value']} |")
+    lines.extend(["", "## Исходные данные", "", str(source["intro"]), ""])
+    for section in source["sections"]:
+        lines.extend([f"### {section['title']}", ""])
+        for item in section.get("content", []):
+            lines.extend([str(item), ""])
+        table = section.get("table")
+        if table:
+            columns = [str(item) for item in table["columns"]]
+            lines.extend(["| " + " | ".join(columns) + " |", "| " + " | ".join(["---"] * len(columns)) + " |"])
+            for row in table["rows"]:
+                lines.append("| " + " | ".join(str(item).replace("|", "\\|").replace("\n", "<br>") for item in row) + " |")
+            lines.append("")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def main() -> None:
+    profile_records = profiles()
+    area_records = areas()
+    labs = json.loads(LABS_FILE.read_text(encoding="utf-8"))["labs"]
+    if len(area_records) != 30 or len({area["title"] for area in area_records}) != 30:
+        raise RuntimeError("Ожидаются 30 уникальных предметных областей")
+    if len(profile_records) != 6 or any(len(profile["characteristics"]) != 5 for profile in profile_records):
+        raise RuntimeError("Ожидаются 6 групп с пятью характеристиками")
+
+    for target in (SOURCE_ROOT, PACK_ROOT):
+        resolved = target.resolve()
+        if not resolved.is_relative_to(ROOT.resolve()):
+            raise RuntimeError(f"Небезопасный путь: {resolved}")
+        if target.exists():
+            shutil.rmtree(target)
+        target.mkdir(parents=True)
+
+    DATA_FILE.parent.mkdir(parents=True, exist_ok=True)
+    DATA_FILE.write_text(json.dumps({"profiles": profile_records, "subjectAreas": area_records}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    INPUT_ROOT.mkdir(parents=True, exist_ok=True)
+    (INPUT_ROOT / "subject-areas.csv").write_text(csv_text(
+        ["variant", "code", "subject_area", "system_code", "profile", "critical_function", "pack"],
+        [[area["id"], area["code"], area["title"], area["systemCode"], area["profileId"], area["criticalFunction"], area["pack"]] for area in area_records],
+    ), encoding="utf-8")
+
+    profile_by_id = {profile["id"]: profile for profile in profile_records}
+    for area in area_records:
+        profile = profile_by_id[area["profileId"]]
+        area_root = SOURCE_ROOT / str(area["code"])
+        lab_root = area_root / "labs"
+        lab_root.mkdir(parents=True)
+        readme = (
+            f"# {area['code']} · {area['title']}\n\n"
+            f"Вариант: **{int(area['id']):02d}**. Система: `{area['systemCode']}`.\n\n"
+            "Пакет содержит только данные выбранной предметной области. Используйте этот же вариант во всех 12 лабораторных работах.\n\n"
+            "## Состав\n\n"
+            "- `system-passport.csv` — паспорт и активы;\n"
+            "- `quality-characteristics.csv` — пять общих характеристик группы;\n"
+            "- `labs/S7_LR01.md`–`labs/S7_LR07.md` — работы 7 семестра;\n"
+            "- `labs/S8_LR01.md`–`labs/S8_LR05.md` — работы 8 семестра.\n"
+        )
+        (area_root / "README.md").write_text(readme, encoding="utf-8")
+        (area_root / "system-passport.csv").write_text(csv_text(
+            ["field", "value"],
+            [["variant", area["id"]], ["code", area["code"]], ["subject_area", area["title"]], ["system_code", area["systemCode"]], ["critical_function", area["criticalFunction"]], ["assets", ", ".join(area["assets"])]],
+        ), encoding="utf-8")
+        (area_root / "quality-characteristics.csv").write_text(csv_text(
+            ["code", "characteristic", "value", "group", "variants"],
+            [[item["code"], item["name"], item["value"], profile["title"], profile["variantRange"]] for item in profile["characteristics"]],
+        ), encoding="utf-8")
+        for lab in labs:
+            source_name = f"S{lab['semester']}_LR{int(lab['semesterLabNumber']):02d}.md"
+            (lab_root / source_name).write_text(markdown_source(lab, area, profile), encoding="utf-8")
+
+        with zipfile.ZipFile(PACK_ROOT / f"{area['code']}.zip", "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            for file in sorted(area_root.rglob("*")):
+                if file.is_file():
+                    archive.write(file, arcname=f"{area['code']}/{file.relative_to(area_root).as_posix()}")
+
+    print(f"OK: {len(area_records)} областей, {len(profile_records)} групп, {len(area_records) * len(labs)} файлов исходных данных.")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,7 @@
+field;value
+variant;15
+code;SA15
+subject_area;Очередь преобразования документов
+system_code;ITPSIS-SA15
+critical_function;преобразование и сохранение учебного файла
+assets;очередь, исходные файлы, результаты

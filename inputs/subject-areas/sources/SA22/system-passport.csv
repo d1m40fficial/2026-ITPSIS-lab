@@ -1,0 +1,7 @@
+field;value
+variant;22
+code;SA22
+subject_area;Сетевой экран учебной сети
+system_code;ITPSIS-SA22
+critical_function;фильтрация и журналирование сетевых потоков
+assets;правила, зоны, журнал потоков

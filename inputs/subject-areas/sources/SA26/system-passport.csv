@@ -1,0 +1,7 @@
+field;value
+variant;26
+code;SA26
+subject_area;Файловое хранилище
+system_code;ITPSIS-SA26
+critical_function;чтение и запись учебных файлов
+assets;файлы, права, журнал операций

@@ -1,0 +1,7 @@
+field;value
+variant;21
+code;SA21
+subject_area;Шлюз сети кампуса
+system_code;ITPSIS-SA21
+critical_function;маршрутизация разрешённого трафика
+assets;маршруты, интерфейсы, потоки

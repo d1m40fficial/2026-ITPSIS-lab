@@ -1,0 +1,7 @@
+field;value
+variant;11
+code;SA11
+subject_area;Шина интеграции LMS
+system_code;ITPSIS-SA11
+critical_function;доставка событий между учебными системами
+assets;события, очереди, повторы

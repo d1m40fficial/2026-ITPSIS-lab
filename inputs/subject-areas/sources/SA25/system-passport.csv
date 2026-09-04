@@ -1,0 +1,7 @@
+field;value
+variant;25
+code;SA25
+subject_area;Узел мониторинга
+system_code;ITPSIS-SA25
+critical_function;сбор метрик и формирование сигналов
+assets;метрики, правила, уведомления

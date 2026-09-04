@@ -1,0 +1,7 @@
+field;value
+variant;13
+code;SA13
+subject_area;Сервис экспорта отчётов
+system_code;ITPSIS-SA13
+critical_function;формирование и выдача отчёта
+assets;задания экспорта, файлы, статусы
