@@ -282,8 +282,9 @@ def append_report_body(body, lab):
         ["Блок и семестр", f"Блок {lab['block']}. {lab['blockTitle']} — {lab['semester']} семестр"],
         ["Тема", f"{lab['topicCode']}. {lab['topicTitle']}"],
         ["Максимальный балл", str(lab["points"])],
-        ["Вход из последовательности", lab["sequenceInput"]],
-        ["Передача в следующую работу", lab["sequenceOutput"]],
+        ["Результаты предыдущих работ", lab["previousResults"]],
+        ["Материалы на входе", lab["inputMaterials"]],
+        ["Использование результата", lab["sequenceOutput"]],
         ["Предметная область", "[Укажите сквозной вариант SA01–SA30 и название]"],
         ["Имя итогового файла", lab["recommendedFileName"]],
     ]
@@ -291,7 +292,8 @@ def append_report_body(body, lab):
 
     insert(heading("1. Цель работы", level=1))
     insert(paragraph(lab["goal"], size=21, after=80))
-    insert(hint_box("[При необходимости уточните формулировку цели своими словами, не добавляя теоретический обзор.]", lines=1))
+    outcome_rows = [[str(index + 1), outcome, "[Укажите раздел или доказательство]"] for index, outcome in enumerate(lab["outcomes"])]
+    insert(make_table(["№", "Формируемое умение", "Где подтверждено"], outcome_rows, [550, 5250, 3200], font_size=18))
 
     insert(heading("2. Исходные данные и среда выполнения", level=1))
     env_rows = [
@@ -301,9 +303,29 @@ def append_report_body(body, lab):
     ]
     insert(make_table(["Параметр", "Заполнение студента"], env_rows, [2200, 6800], font_size=19, first_col_bold=True))
 
-    insert(heading("3. Выполнение задания", level=1))
-    execution_rows = [[str(index + 1), stage.split(".", 1)[0], "[Действие и полученный промежуточный результат]", "[Таблица, ID, рисунок]"] for index, stage in enumerate(lab["stages"])]
-    insert(make_table(["Этап", "Логика этапа", "Что выполнено", "Доказательство"], execution_rows, [650, 2750, 3500, 2100], font_size=17))
+    insert(heading("3. Выполнение обязательных шагов", level=1, page_break_before=True))
+    for index, step in enumerate(lab["taskSteps"], start=1):
+        insert(heading(f"Шаг {index}", level=2, page_break_before=index == 4))
+        step_rows = [
+            ["Что выполнить", step["action"]],
+            ["Исходные данные", step["sources"]],
+            ["Что должно получиться", step["result"]],
+            ["Как проверить", step["check"]],
+            ["Выполнение студента", "[Опишите действие и полученный промежуточный результат]"],
+            ["Доказательство", "[Укажите таблицу, ID, рисунок или другой проверяемый фрагмент]"],
+        ]
+        insert(make_table(["Элемент шага", "Содержание"], step_rows, [2200, 6800], font_size=17, first_col_bold=True))
+
+    insert(heading("Дополнительное задание", level=2, page_break_before=True))
+    insert(paragraph("Дополнительное задание выполняется после обязательной части и не заменяет ни один из шести шагов.", italic=True, size=18, after=70))
+    optional = lab["optionalTask"]
+    insert(make_table(["Элемент", "Содержание"], [
+        ["Что выполнить", optional["action"]],
+        ["Исходные данные", optional["sources"]],
+        ["Что должно получиться", optional["result"]],
+        ["Как проверить", optional["check"]],
+        ["Результат студента", "[Заполните, если выполняли дополнительное задание]"],
+    ], [2200, 6800], font_size=17, first_col_bold=True))
 
     insert(heading("4. Основной практический результат", level=1))
     insert(paragraph(f"Требуемый результат: {lab['practicalResult']}.", bold=True, size=21, after=90))
@@ -330,6 +352,9 @@ def append_report_body(body, lab):
     insert(make_table(["№", "Проверка", "Ожидается", "Фактически", "Доказательство"], check_rows, [550, 2000, 2050, 2050, 2350], font_size=17))
 
     insert(heading("7. Доказательства", level=1))
+    source_rows = [[item, "[Укажите раздел отчёта, таблицу или рисунок]"] for item in lab["sourceReferences"]]
+    insert(caption("Обязательные ссылки на исходные данные"))
+    insert(make_table(["Исходный материал", "Где использован"], source_rows, [4800, 4200], font_size=18))
     insert(hint_box("[Вставьте рисунок или скриншот 1. Должны быть читаемы ключевые значения, ID события, состояние или настройка. Не включайте лишние окна и персональные данные.]", lines=2))
     insert(caption("Рисунок 1 — [Краткое название доказательства]"))
     insert(hint_box("[Вставьте рисунок, схему или скриншот 2, если он нужен для подтверждения результата. Если доказательство полностью табличное, удалите этот блок.]", lines=1))
@@ -341,7 +366,7 @@ def append_report_body(body, lab):
 
     insert(heading("9. Самопроверка", level=1))
     self_rows = [["☐", item, "[Примечание при необходимости]"] for item in lab["selfCheck"]]
-    insert(make_table(["Отметка", "Контрольный вопрос", "Комментарий"], self_rows, [1000, 5000, 3000], font_size=18))
+    insert(make_table(["Отметка", "Проверяемое утверждение", "Комментарий"], self_rows, [1000, 5000, 3000], font_size=18))
 
     insert(heading("10. Краткий вывод", level=1))
     insert(hint_box("[Сформулируйте профессиональный вывод: что установлено, соответствует ли результат требованию, какое решение принято и на каких доказательствах оно основано. Не пересказывайте теорию.]", lines=3))

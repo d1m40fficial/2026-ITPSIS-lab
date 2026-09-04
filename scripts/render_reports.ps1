@@ -27,7 +27,7 @@ foreach ($file in $files) {
   & $PdfToPpm -png -r 150 $pdf (Join-Path $labOut 'page') | Out-Null
   if ($LASTEXITCODE -ne 0) { throw "PNG render failed for $($file.Name)." }
   $pages = (Get-ChildItem -File -LiteralPath $labOut -Filter 'page-*.png').Count
-  if ($pages -ne 4) { throw "Expected 4 pages for $($file.Name), found $pages." }
+  if ($pages -lt 5) { throw "Expected at least 5 pages for $($file.Name), found $pages." }
   Write-Output "RENDERED $($file.Name) PAGES=$pages"
 }
 

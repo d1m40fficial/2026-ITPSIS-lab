@@ -143,6 +143,9 @@ def personalize(value: object, area: dict[str, object]) -> object:
 def markdown_source(lab: dict[str, object], area: dict[str, object], profile: dict[str, object]) -> str:
     source = personalize(lab["sourceData"], area)
     situation = personalize(lab["situation"], area)
+    previous_results = personalize(lab["previousResults"], area)
+    input_materials = personalize(lab["inputMaterials"], area)
+    sequence_output = personalize(lab["sequenceOutput"], area)
     lines = [
         f"# {area['code']} · {lab['semester']} семестр · ЛР {int(lab['semesterLabNumber']):02d} · {lab['title']}", "",
         f"**Предметная область:** {area['title']}",
@@ -150,6 +153,10 @@ def markdown_source(lab: dict[str, object], area: dict[str, object], profile: di
         f"**Критичная функция:** {area['criticalFunction']}",
         f"**Профиль:** {profile['title']} (варианты {profile['variantRange']})", "",
         "## Рабочая ситуация", "", str(situation), "",
+        "## Место в последовательности", "",
+        f"**Результаты предыдущих работ:** {previous_results}", "",
+        f"**Материалы на входе:** {input_materials}", "",
+        f"**Использование результата:** {sequence_output}", "",
         "## Пять характеристик профиля", "",
         "| Код | Характеристика | Значение |", "| --- | --- | --- |",
     ]

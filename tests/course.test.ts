@@ -8,10 +8,22 @@ describe('карта лабораторных работ', () => {
     expect(new Set(payload.labs.map((lab) => lab.number)).size).toBe(12)
     expect(payload.labs.reduce((sum, lab) => sum + lab.points, 0)).toBe(100)
     for (const lab of payload.labs) {
-      expect(lab.sequenceInput.length).toBeGreaterThan(20)
+      expect(lab.previousResults.length).toBeGreaterThan(20)
+      expect(lab.inputMaterials.length).toBeGreaterThan(20)
       expect(lab.sequenceOutput.length).toBeGreaterThan(20)
+      expect(lab.taskSteps).toHaveLength(6)
+      for (const step of lab.taskSteps) {
+        expect(step.action.length).toBeGreaterThan(20)
+        expect(step.sources.length).toBeGreaterThan(20)
+        expect(step.result.length).toBeGreaterThan(20)
+        expect(step.check.length).toBeGreaterThan(20)
+      }
+      expect(lab.workedExample.source).toContain('DEMO')
+      expect(lab.reportSections).toHaveLength(10)
       expect(lab).not.toHaveProperty('durationHours')
       expect(lab).not.toHaveProperty('hours')
+      expect(lab).not.toHaveProperty('task')
+      expect(lab).not.toHaveProperty('stages')
     }
   })
 

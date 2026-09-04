@@ -324,7 +324,7 @@ function LabPage({ lab, subjectArea, profile, onSubjectAreaChange }: { lab: Lab;
 
             <ContentSection id="goal" number="02" label="Результат обучения" title="Цель и формируемые умения" icon={<Target aria-hidden="true" />}>
               <p><strong>Цель.</strong> {lab.goal}</p>
-              <div className="choice-callout"><strong>Место в последовательности</strong><p><b>Вход:</b> {lab.sequenceInput}</p><p><b>Передача дальше:</b> {lab.sequenceOutput}</p></div>
+              <div className="choice-callout"><strong>Место в последовательности</strong><p><b>Результаты предыдущих работ:</b> {lab.previousResults}</p><p><b>Материалы на входе:</b> {lab.inputMaterials}</p><p><b>Использование результата:</b> {lab.sequenceOutput}</p></div>
               <h3>После выполнения вы сможете</h3>
               <Checklist items={lab.outcomes} />
             </ContentSection>
@@ -357,7 +357,19 @@ function LabPage({ lab, subjectArea, profile, onSubjectAreaChange }: { lab: Lab;
               ))}</div>
             </ContentSection>
 
-            <ContentSection id="example" number="05" label="Пример" title="Пять характеристик сопровождения" icon={<ShieldCheck aria-hidden="true" />}>
+            <ContentSection id="example" number="05" label="Пример" title="Разобранный пример" icon={<ShieldCheck aria-hidden="true" />}>
+              <p>Пример показывает принцип выполнения на отдельной демонстрационной системе и не содержит решения для выбранного варианта.</p>
+              <ResponsiveTable data={{
+                title: 'Ограниченный пример применения метода',
+                columns: ['Элемент', 'Содержание примера'],
+                rows: [
+                  ['Исходный фрагмент', lab.workedExample.source],
+                  ['Применение метода', lab.workedExample.method],
+                  ['Проверяемый результат', lab.workedExample.result],
+                  ['Проверка', lab.workedExample.check],
+                ],
+              }} />
+              <h3>Пять характеристик сопровождения</h3>
               <p className="profile-intro">Варианты {profile.variantRange} используют один профиль «{profile.title}». Значения общие для пятёрки, а примеры ниже относятся только к {subjectArea.code}.</p>
               <div className="characteristic-grid">{profile.characteristics.map((item) => (
                 <article className="characteristic-card" key={item.code}>
@@ -367,7 +379,18 @@ function LabPage({ lab, subjectArea, profile, onSubjectAreaChange }: { lab: Lab;
             </ContentSection>
 
             <ContentSection id="task" number="06" label="Задание" title="Что нужно сделать" icon={<ListChecks aria-hidden="true" />}>
-              <Checklist items={lab.task} numbered />
+              <p><strong>Обязательные действия.</strong> Выполняйте шаги по порядку: результат каждого шага используется в следующем.</p>
+              <ResponsiveTable data={{
+                title: 'Последовательность обязательных действий',
+                columns: ['Шаг', 'Что выполнить', 'Исходные данные', 'Что должно получиться', 'Как проверить'],
+                rows: lab.taskSteps.map((step, index) => [index + 1, step.action, step.sources, step.result, step.check]),
+              }} />
+              <h3>Дополнительное задание</h3>
+              <p>Дополнительное задание выполняется после обязательной части и не заменяет ни один из шести шагов.</p>
+              <ResponsiveTable data={{
+                columns: ['Что выполнить', 'Исходные данные', 'Что должно получиться', 'Как проверить'],
+                rows: [[lab.optionalTask.action, lab.optionalTask.sources, lab.optionalTask.result, lab.optionalTask.check]],
+              }} />
             </ContentSection>
 
             <ContentSection id="result" number="07" label="Доказательства" title="Что подтвердить" icon={<FileCheck2 aria-hidden="true" />}>
@@ -375,16 +398,19 @@ function LabPage({ lab, subjectArea, profile, onSubjectAreaChange }: { lab: Lab;
                 <div><h3>Что должно быть получено</h3><Checklist items={lab.deliverables} /></div>
                 <div><h3>Какие доказательства приложить</h3><Checklist items={lab.evidence} /></div>
               </div>
+              <h3>На какие исходные данные сослаться</h3><Checklist items={lab.sourceReferences} />
             </ContentSection>
 
             <ContentSection id="self-check" number="08" label="Перед отправкой" title="Самопроверка" icon={<ClipboardCheck aria-hidden="true" />}>
               <Checklist items={lab.selfCheck} checkboxes />
-              <h3>Требования к Word-файлу</h3><Checklist items={lab.wordRequirements} />
             </ContentSection>
 
             <ContentSection id="lms-submit" number="09" label="Отчёт и LMS" title="Что сдаётся" icon={<GraduationCap aria-hidden="true" />}>
               <p><strong>Один заполненный редактируемый DOCX-файл.</strong></p>
               <p className="filename"><strong>Рекомендуемое имя:</strong> <code>{lab.recommendedFileName}</code></p>
+              <h3>Обязательные разделы отчёта</h3><Checklist items={lab.reportSections} />
+              <h3>Редактируемость и иллюстрации</h3><Checklist items={lab.wordRequirements} />
+              <h3>Передача результата</h3>
               <ol className="lms-steps">{lab.lmsSteps.map((step) => <li key={step}>{step}</li>)}</ol>
               <div className="submission-actions">
                 <a className="button primary" href={reportUrl} download><Download aria-hidden="true" size={18} /> Скачать редактируемый DOCX</a>

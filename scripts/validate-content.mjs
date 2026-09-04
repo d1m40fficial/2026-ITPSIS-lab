@@ -20,9 +20,11 @@ const officialTitles = [
   'Составление плана технического обслуживания аппаратных средств и ведение учёта состояния оборудования',
 ]
 const points = [6, 6, 8, 7, 8, 8, 7, 10, 10, 10, 10, 10]
-const requiredArrays = ['outcomes', 'tools', 'theoryCards', 'task', 'stages', 'deliverables', 'evidence', 'selfCheck', 'wordRequirements', 'lmsSteps']
-const requiredStrings = ['slug', 'title', 'blockTitle', 'topicCode', 'topicTitle', 'practicalResult', 'sequenceInput', 'sequenceOutput', 'situation', 'goal', 'professionalChoice', 'reportFile', 'recommendedFileName']
+const requiredArrays = ['outcomes', 'tools', 'theoryCards', 'taskSteps', 'deliverables', 'evidence', 'sourceReferences', 'selfCheck', 'wordRequirements', 'reportSections', 'lmsSteps']
+const requiredStrings = ['slug', 'title', 'blockTitle', 'topicCode', 'topicTitle', 'practicalResult', 'previousResults', 'inputMaterials', 'sequenceOutput', 'situation', 'goal', 'professionalChoice', 'reportFile', 'recommendedFileName']
 const normalize = (value) => String(value).trim().toLocaleLowerCase('ru-RU').replace(/[.!?;,:—–\s]+/gu, ' ')
+const stepFields = ['action', 'sources', 'result', 'check']
+const vagueAction = /^(?:изучите материал|ознакомьтесь с|проведите анализ|сделайте вывод|оформите результат)\b/iu
 
 if (!Array.isArray(labs)) errors.push('Поле labs должно быть массивом.')
 if (labs.length !== 12) errors.push(`Ожидалось 12 работ, найдено ${labs.length}.`)
@@ -52,17 +54,35 @@ for (const lab of labs) {
 
   for (const key of requiredStrings) if (typeof lab[key] !== 'string' || !lab[key].trim()) errors.push(`${prefix}: пустое поле ${key}.`)
   for (const key of requiredArrays) if (!Array.isArray(lab[key]) || !lab[key].length) errors.push(`${prefix}: пустой массив ${key}.`)
-  for (const key of ['task', 'stages', 'deliverables', 'evidence', 'selfCheck']) {
+  for (const key of ['deliverables', 'evidence', 'sourceReferences', 'selfCheck', 'reportSections']) {
     const values = (lab[key] ?? []).map(normalize)
     if (new Set(values).size !== values.length) errors.push(`${prefix}: повторы в блоке ${key}.`)
   }
-  const taskValues = new Set((lab.task ?? []).map(normalize))
-  if ((lab.stages ?? []).some((item) => taskValues.has(normalize(item)))) errors.push(`${prefix}: этап дословно дублирует задание.`)
+  if ('task' in lab || 'stages' in lab || 'sequenceInput' in lab) errors.push(`${prefix}: в публичных данных осталась устаревшая структура задания или последовательности.`)
+  if (lab.taskSteps?.length !== 6) errors.push(`${prefix}: должно быть ровно 6 обязательных шагов.`)
+  const actions = []
+  for (const [index, step] of (lab.taskSteps ?? []).entries()) {
+    for (const field of stepFields) {
+      if (typeof step?.[field] !== 'string' || step[field].trim().length < 20) errors.push(`${prefix}, шаг ${index + 1}: поле ${field} должно быть конкретным и проверяемым.`)
+    }
+    if (vagueAction.test(step?.action ?? '')) errors.push(`${prefix}, шаг ${index + 1}: расплывчатая формулировка действия.`)
+    actions.push(normalize(step?.action ?? ''))
+  }
+  if (new Set(actions).size !== actions.length) errors.push(`${prefix}: обязательные шаги повторяются.`)
+  for (const field of stepFields) {
+    if (typeof lab.optionalTask?.[field] !== 'string' || lab.optionalTask[field].trim().length < 20) errors.push(`${prefix}: дополнительное задание не содержит поле ${field}.`)
+  }
+  for (const field of ['source', 'method', 'result', 'check']) {
+    if (typeof lab.workedExample?.[field] !== 'string' || lab.workedExample[field].trim().length < 30) errors.push(`${prefix}: разобранный пример не содержит поле ${field}.`)
+  }
+  if (!/DEMO/iu.test(JSON.stringify(lab.workedExample))) errors.push(`${prefix}: пример должен использовать отдельные демонстрационные данные.`)
   const deliverableValues = new Set((lab.deliverables ?? []).map(normalize))
   if ((lab.evidence ?? []).some((item) => deliverableValues.has(normalize(item)))) errors.push(`${prefix}: точный дубль между результатами и доказательствами.`)
   if (!lab.sourceData?.intro?.trim() || !Array.isArray(lab.sourceData.sections) || !lab.sourceData.sections.length) errors.push(`${prefix}: недостаточно исходных данных.`)
   if (lab.theoryCards?.length < 3 || lab.theoryCards?.length > 7) errors.push(`${prefix}: должно быть 3–7 карточек теории.`)
-  if (lab.stages?.length !== 6) errors.push(`${prefix}: должно быть ровно 6 логических этапов.`)
+  if (lab.selfCheck?.length !== 6) errors.push(`${prefix}: должно быть ровно 6 однозначных пунктов самопроверки.`)
+  if (lab.sourceReferences?.length < 4) errors.push(`${prefix}: недостаточно обязательных ссылок на исходные данные.`)
+  if (lab.reportSections?.length !== 10) errors.push(`${prefix}: шаблон отчёта должен сохранять 10 обязательных разделов.`)
   if (lab.lmsSteps?.length !== 6) errors.push(`${prefix}: должно быть 6 шагов сдачи в LMS.`)
 
   const expectedReport = `S${expectedSemester}_LR${String(expectedLocalNumber).padStart(2, '0')}_template.docx`
@@ -80,6 +100,8 @@ for (const lab of labs) {
 }
 
 const totalPoints = labs.reduce((sum, lab) => sum + Number(lab.points || 0), 0)
+const allTaskActions = labs.flatMap((lab) => (lab.taskSteps ?? []).map((step) => normalize(step.action)))
+if (new Set(allTaskActions).size !== allTaskActions.length) errors.push('Обязательные действия разных работ не должны повторяться дословно.')
 if (totalPoints !== 100) errors.push(`Сумма баллов ${totalPoints}, ожидалось 100.`)
 if (labs.filter((lab) => lab.semester === 7).length !== 7) errors.push('В 7 семестре должно быть 7 работ.')
 if (labs.filter((lab) => lab.semester === 8).length !== 5) errors.push('В 8 семестре должно быть 5 работ.')
@@ -117,4 +139,4 @@ if (errors.length) {
   console.error(errors.map((message) => `- ${message}`).join('\n'))
   process.exit(1)
 }
-console.log(`OK: ${labs.length} последовательных работ, ${totalPoints} баллов, 30 предметных областей, 30 ZIP-пакетов и 12 DOCX-шаблонов.`)
+console.log(`OK: ${labs.length} методически структурированных последовательных работ, ${totalPoints} баллов, 30 предметных областей, 30 ZIP-пакетов и 12 DOCX-шаблонов.`)

@@ -189,6 +189,8 @@ ol.checklist li::before { counter-increment: task; content: counter(task); posit
 .data-table { margin: 0.8rem 0 1.25rem; }
 .data-table figcaption { margin-top: 0.45rem; color: var(--muted); font-size: 0.76rem; }
 .table-scroll { max-width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: 0.72rem; }
+#task table { min-width: 68rem; }
+#task th:first-child, #task td:first-child { width: 3.5rem; min-width: 3.5rem; text-align: center; }
 table { width: 100%; border-collapse: collapse; background: #fff; font-size: 0.84rem; }
 th, td { padding: 0.72rem 0.78rem; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; line-height: 1.42; }
 th { background: #f0f0f3; font-size: 0.75rem; font-weight: 850; }
@@ -307,6 +309,8 @@ tbody tr:last-child td { border-bottom: 0; }
   .content-section-heading h2 { font-size: 17pt; }
   .theory-card, .characteristic-card, .data-section, .lead-card, .choice-callout, .checklist li { break-inside: avoid; box-shadow: none; }
   .table-scroll { overflow: visible; }
+  #task table { min-width: 0; font-size: 6.7pt; }
+  #task th:first-child, #task td:first-child { width: auto; min-width: 0; }
   table { font-size: 8.5pt; }
   a { text-decoration: none; }
 }

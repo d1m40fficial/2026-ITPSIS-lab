@@ -21,6 +21,20 @@ export interface SourceData {
   sections: DataSection[]
 }
 
+export interface TaskStep {
+  action: string
+  sources: string
+  result: string
+  check: string
+}
+
+export interface WorkedExample {
+  source: string
+  method: string
+  result: string
+  check: string
+}
+
 export interface QualityCharacteristic {
   code: string
   name: string
@@ -59,7 +73,8 @@ export interface Lab {
   topicTitle: string
   points: number
   practicalResult: string
-  sequenceInput: string
+  previousResults: string
+  inputMaterials: string
   sequenceOutput: string
   situation: string
   goal: string
@@ -67,12 +82,15 @@ export interface Lab {
   sourceData: SourceData
   tools: string[]
   theoryCards: TheoryCard[]
-  task: string[]
-  stages: string[]
+  workedExample: WorkedExample
+  taskSteps: TaskStep[]
+  optionalTask: TaskStep
   deliverables: string[]
   evidence: string[]
+  sourceReferences: string[]
   selfCheck: string[]
   wordRequirements: string[]
+  reportSections: string[]
   professionalChoice: string
   lmsSteps: string[]
   reportFile: string
