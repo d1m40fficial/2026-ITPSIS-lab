@@ -7,3 +7,5 @@ test-results/
 _qa/
 .qa-template/
 .tmp/
+__pycache__/
+*.pyc

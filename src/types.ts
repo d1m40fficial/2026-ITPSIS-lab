@@ -62,6 +62,9 @@ export interface SubjectArea {
 }
 
 export interface Lab {
+  assessment: string
+  lectureContext: string
+  datasetVersion: string
   number: number
   semesterLabNumber: number
   slug: string

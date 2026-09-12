@@ -8,7 +8,6 @@
   },
   "scripts": {
     "dev": "vite",
-    "generate:labs": "python scripts/generate_labs.py",
     "generate:subjects": "python scripts/generate_subject_areas.py",
     "validate": "node scripts/validate-content.mjs",
     "typecheck": "tsc -b",
@@ -17,12 +16,15 @@
     "build": "pnpm run validate && pnpm run typecheck && vite build && node scripts/validate-dist.mjs",
     "preview": "vite preview",
     "test:e2e": "playwright test",
-    "check": "pnpm run lint && pnpm run test && pnpm run build"
+    "check": "pnpm run lint && pnpm run test && pnpm run build",
+    "generate:guide": "node scripts/generate-guide.mjs",
+    "generate:reports": "python scripts/generate_reports.py"
   },
   "dependencies": {
     "lucide-react": "^1.38.0",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "fflate": "^0.8.3"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",

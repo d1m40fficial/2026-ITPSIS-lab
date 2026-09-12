@@ -227,7 +227,10 @@ def main() -> None:
             ["code", "characteristic", "value", "group", "variants"],
             [[item["code"], item["name"], item["value"], profile["title"], profile["variantRange"]] for item in profile["characteristics"]],
         ), encoding="utf-8")
-        for lab in labs:
+        for original_lab in labs:
+            lab = dict(original_lab)
+            variant_data = json.loads((ROOT / "src/data/variant-data.json").read_text(encoding="utf-8"))
+            lab.update(variant_data[str(area["code"])][str(lab["slug"])])
             source_name = f"S{lab['semester']}_LR{int(lab['semesterLabNumber']):02d}.md"
             (lab_root / source_name).write_text(markdown_source(lab, area, profile), encoding="utf-8")
 

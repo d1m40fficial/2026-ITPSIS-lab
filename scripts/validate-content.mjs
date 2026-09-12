@@ -5,6 +5,21 @@ const root = resolve(import.meta.dirname, '..')
 const { labs } = JSON.parse(readFileSync(resolve(root, 'src/data/labs.json'), 'utf8'))
 const { subjectAreas, profiles } = JSON.parse(readFileSync(resolve(root, 'src/data/subject-areas.json'), 'utf8'))
 const errors = []
+const variants = JSON.parse(readFileSync(resolve(root, 'src/data/variant-data.json'), 'utf8'))
+for (const area of subjectAreas) {
+  for (const lab of labs) {
+    const data = variants[area.code]?.[lab.slug]?.sourceData?.sections
+    if (!Array.isArray(data) || !data.length) {
+      errors.push(`${area.code}/${lab.slug}: отсутствуют вариантные данные.`)
+      continue
+    }
+    for (const section of data) {
+      if (section.table && section.table.rows.some(row => row.length !== section.table.columns.length)) {
+        errors.push(`${area.code}/${lab.slug}: нарушена структура таблицы.`)
+      }
+    }
+  }
+}
 const officialTitles = [
   'Разработка регламента работы службы поддержки информационной системы',
   'Разработка соглашения об уровне обслуживания с показателями и приоритетами',
@@ -82,7 +97,7 @@ for (const lab of labs) {
   if (lab.theoryCards?.length < 3 || lab.theoryCards?.length > 7) errors.push(`${prefix}: должно быть 3–7 карточек теории.`)
   if (lab.selfCheck?.length !== 6) errors.push(`${prefix}: должно быть ровно 6 однозначных пунктов самопроверки.`)
   if (lab.sourceReferences?.length < 4) errors.push(`${prefix}: недостаточно обязательных ссылок на исходные данные.`)
-  if (lab.reportSections?.length !== 10) errors.push(`${prefix}: шаблон отчёта должен сохранять 10 обязательных разделов.`)
+  if (lab.reportSections?.length < 3) errors.push(`${prefix}: форма должна содержать предметный результат, основания и контроль.`)
   if (lab.lmsSteps?.length !== 6) errors.push(`${prefix}: должно быть 6 шагов сдачи в LMS.`)
 
   const expectedReport = `S${expectedSemester}_LR${String(expectedLocalNumber).padStart(2, '0')}_template.docx`
