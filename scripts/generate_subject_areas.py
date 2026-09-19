@@ -13,6 +13,7 @@ DATA_FILE = ROOT / "src" / "data" / "subject-areas.json"
 LABS_FILE = ROOT / "src" / "data" / "labs.json"
 INPUT_ROOT = ROOT / "inputs" / "subject-areas"
 SOURCE_ROOT = INPUT_ROOT / "sources"
+SEMESTER_7_ROOT = INPUT_ROOT / "semester-7"
 PACK_ROOT = ROOT / "public" / "inputs" / "subject-areas" / "packs"
 
 
@@ -186,7 +187,7 @@ def main() -> None:
     if len(profile_records) != 6 or any(len(profile["characteristics"]) != 5 for profile in profile_records):
         raise RuntimeError("Ожидаются 6 групп с пятью характеристиками")
 
-    for target in (SOURCE_ROOT, PACK_ROOT):
+    for target in (SOURCE_ROOT, SEMESTER_7_ROOT, PACK_ROOT):
         resolved = target.resolve()
         if not resolved.is_relative_to(ROOT.resolve()):
             raise RuntimeError(f"Небезопасный путь: {resolved}")
@@ -203,6 +204,10 @@ def main() -> None:
     ), encoding="utf-8")
 
     profile_by_id = {profile["id"]: profile for profile in profile_records}
+    semester_7_labs = [lab for lab in labs if lab["semester"] == 7]
+    semester_7_sources: dict[int, list[tuple[dict[str, object], str]]] = {
+        int(lab["semesterLabNumber"]): [] for lab in semester_7_labs
+    }
     for area in area_records:
         profile = profile_by_id[area["profileId"]]
         area_root = SOURCE_ROOT / str(area["code"])
@@ -232,14 +237,36 @@ def main() -> None:
             variant_data = json.loads((ROOT / "src/data/variant-data.json").read_text(encoding="utf-8"))
             lab.update(variant_data[str(area["code"])][str(lab["slug"])])
             source_name = f"S{lab['semester']}_LR{int(lab['semesterLabNumber']):02d}.md"
-            (lab_root / source_name).write_text(markdown_source(lab, area, profile), encoding="utf-8")
+            rendered_source = markdown_source(lab, area, profile)
+            (lab_root / source_name).write_text(rendered_source, encoding="utf-8")
+            if lab["semester"] == 7:
+                semester_7_sources[int(lab["semesterLabNumber"])].append((area, rendered_source))
 
         with zipfile.ZipFile(PACK_ROOT / f"{area['code']}.zip", "w", compression=zipfile.ZIP_DEFLATED) as archive:
             for file in sorted(area_root.rglob("*")):
                 if file.is_file():
                     archive.write(file, arcname=f"{area['code']}/{file.relative_to(area_root).as_posix()}")
 
-    print(f"OK: {len(area_records)} областей, {len(profile_records)} групп, {len(area_records) * len(labs)} файлов исходных данных.")
+    readme_lines = [
+        "# 7 семестр", "",
+        "В каждой папке лабораторной работы собраны все 30 вариантов.", "",
+        "## Состав", "",
+    ]
+    for lab in semester_7_labs:
+        number = int(lab["semesterLabNumber"])
+        lab_dir = SEMESTER_7_ROOT / f"LR{number:02d}"
+        lab_dir.mkdir(parents=True)
+        for area, rendered_source in semester_7_sources[number]:
+            variant_name = f"variant-{int(area['id']):02d}-{area['code']}.md"
+            (lab_dir / variant_name).write_text(rendered_source, encoding="utf-8")
+        readme_lines.append(f"- `LR{number:02d}` — {lab['title']} (30 вариантов)")
+    (SEMESTER_7_ROOT / "README.md").write_text("\n".join(readme_lines) + "\n", encoding="utf-8")
+
+    print(
+        f"OK: {len(area_records)} областей, {len(profile_records)} групп, "
+        f"{len(area_records) * len(labs)} файлов исходных данных и "
+        f"{len(semester_7_labs) * len(area_records)} файлов в папке 7 семестра."
+    )
 
 
 if __name__ == "__main__":
