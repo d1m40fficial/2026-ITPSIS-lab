@@ -147,13 +147,15 @@ const packNames = existsSync(resolve(root, 'public/inputs/subject-areas/packs'))
   : []
 if (packNames.length !== 30) errors.push(`Ожидалось 30 ZIP-пакетов, найдено ${packNames.length}.`)
 
-const semester7Root = resolve(root, 'inputs/subject-areas/semester-7')
-for (let labNumber = 1; labNumber <= 7; labNumber += 1) {
-  const labDirectory = resolve(semester7Root, `LR${String(labNumber).padStart(2, '0')}`)
-  const variantFiles = existsSync(labDirectory)
-    ? readdirSync(labDirectory).filter((name) => /^variant-\d{2}-SA\d{2}\.md$/.test(name))
-    : []
-  if (variantFiles.length !== 30) errors.push(`7 семестр, ЛР ${labNumber}: ожидалось 30 вариантов, найдено ${variantFiles.length}.`)
+for (const [semester, labCount] of [[7, 7], [8, 5]]) {
+  const semesterRoot = resolve(root, `inputs/subject-areas/semester-${semester}`)
+  for (let labNumber = 1; labNumber <= labCount; labNumber += 1) {
+    const labDirectory = resolve(semesterRoot, `LR${String(labNumber).padStart(2, '0')}`)
+    const variantFiles = existsSync(labDirectory)
+      ? readdirSync(labDirectory).filter((name) => /^variant-\d{2}-SA\d{2}\.md$/.test(name))
+      : []
+    if (variantFiles.length !== 30) errors.push(`${semester} семестр, ЛР ${labNumber}: ожидалось 30 вариантов, найдено ${variantFiles.length}.`)
+  }
 }
 
 const publicText = JSON.stringify({ labs, subjectAreas, profiles })

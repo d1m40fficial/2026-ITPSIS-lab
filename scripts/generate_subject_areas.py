@@ -13,7 +13,10 @@ DATA_FILE = ROOT / "src" / "data" / "subject-areas.json"
 LABS_FILE = ROOT / "src" / "data" / "labs.json"
 INPUT_ROOT = ROOT / "inputs" / "subject-areas"
 SOURCE_ROOT = INPUT_ROOT / "sources"
-SEMESTER_7_ROOT = INPUT_ROOT / "semester-7"
+SEMESTER_ROOTS = {
+    7: INPUT_ROOT / "semester-7",
+    8: INPUT_ROOT / "semester-8",
+}
 PACK_ROOT = ROOT / "public" / "inputs" / "subject-areas" / "packs"
 
 
@@ -187,7 +190,7 @@ def main() -> None:
     if len(profile_records) != 6 or any(len(profile["characteristics"]) != 5 for profile in profile_records):
         raise RuntimeError("Ожидаются 6 групп с пятью характеристиками")
 
-    for target in (SOURCE_ROOT, SEMESTER_7_ROOT, PACK_ROOT):
+    for target in (SOURCE_ROOT, *SEMESTER_ROOTS.values(), PACK_ROOT):
         resolved = target.resolve()
         if not resolved.is_relative_to(ROOT.resolve()):
             raise RuntimeError(f"Небезопасный путь: {resolved}")
@@ -204,9 +207,15 @@ def main() -> None:
     ), encoding="utf-8")
 
     profile_by_id = {profile["id"]: profile for profile in profile_records}
-    semester_7_labs = [lab for lab in labs if lab["semester"] == 7]
-    semester_7_sources: dict[int, list[tuple[dict[str, object], str]]] = {
-        int(lab["semesterLabNumber"]): [] for lab in semester_7_labs
+    semester_labs = {
+        semester: [lab for lab in labs if lab["semester"] == semester]
+        for semester in SEMESTER_ROOTS
+    }
+    semester_sources: dict[int, dict[int, list[tuple[dict[str, object], str]]]] = {
+        semester: {
+            int(lab["semesterLabNumber"]): [] for lab in semester_labs[semester]
+        }
+        for semester in SEMESTER_ROOTS
     }
     for area in area_records:
         profile = profile_by_id[area["profileId"]]
@@ -239,33 +248,41 @@ def main() -> None:
             source_name = f"S{lab['semester']}_LR{int(lab['semesterLabNumber']):02d}.md"
             rendered_source = markdown_source(lab, area, profile)
             (lab_root / source_name).write_text(rendered_source, encoding="utf-8")
-            if lab["semester"] == 7:
-                semester_7_sources[int(lab["semesterLabNumber"])].append((area, rendered_source))
+            semester = int(lab["semester"])
+            if semester in semester_sources:
+                semester_sources[semester][int(lab["semesterLabNumber"])].append((area, rendered_source))
 
         with zipfile.ZipFile(PACK_ROOT / f"{area['code']}.zip", "w", compression=zipfile.ZIP_DEFLATED) as archive:
             for file in sorted(area_root.rglob("*")):
                 if file.is_file():
-                    archive.write(file, arcname=f"{area['code']}/{file.relative_to(area_root).as_posix()}")
+                    archive_name = f"{area['code']}/{file.relative_to(area_root).as_posix()}"
+                    info = zipfile.ZipInfo(archive_name, date_time=(2026, 1, 1, 0, 0, 0))
+                    info.compress_type = zipfile.ZIP_DEFLATED
+                    info.external_attr = 0o100644 << 16
+                    archive.writestr(info, file.read_bytes())
 
-    readme_lines = [
-        "# 7 семестр", "",
-        "В каждой папке лабораторной работы собраны все 30 вариантов.", "",
-        "## Состав", "",
-    ]
-    for lab in semester_7_labs:
-        number = int(lab["semesterLabNumber"])
-        lab_dir = SEMESTER_7_ROOT / f"LR{number:02d}"
-        lab_dir.mkdir(parents=True)
-        for area, rendered_source in semester_7_sources[number]:
-            variant_name = f"variant-{int(area['id']):02d}-{area['code']}.md"
-            (lab_dir / variant_name).write_text(rendered_source, encoding="utf-8")
-        readme_lines.append(f"- `LR{number:02d}` — {lab['title']} (30 вариантов)")
-    (SEMESTER_7_ROOT / "README.md").write_text("\n".join(readme_lines) + "\n", encoding="utf-8")
+    semester_file_count = 0
+    for semester, semester_root in SEMESTER_ROOTS.items():
+        readme_lines = [
+            f"# {semester} семестр", "",
+            "В каждой папке лабораторной работы собраны все 30 вариантов.", "",
+            "## Состав", "",
+        ]
+        for lab in semester_labs[semester]:
+            number = int(lab["semesterLabNumber"])
+            lab_dir = semester_root / f"LR{number:02d}"
+            lab_dir.mkdir(parents=True)
+            for area, rendered_source in semester_sources[semester][number]:
+                variant_name = f"variant-{int(area['id']):02d}-{area['code']}.md"
+                (lab_dir / variant_name).write_text(rendered_source, encoding="utf-8")
+                semester_file_count += 1
+            readme_lines.append(f"- `LR{number:02d}` — {lab['title']} (30 вариантов)")
+        (semester_root / "README.md").write_text("\n".join(readme_lines) + "\n", encoding="utf-8")
 
     print(
         f"OK: {len(area_records)} областей, {len(profile_records)} групп, "
         f"{len(area_records) * len(labs)} файлов исходных данных и "
-        f"{len(semester_7_labs) * len(area_records)} файлов в папке 7 семестра."
+        f"{semester_file_count} файлов в папках семестров."
     )
 
 
