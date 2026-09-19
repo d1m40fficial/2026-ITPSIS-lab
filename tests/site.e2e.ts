@@ -66,3 +66,17 @@ test('выбранная предметная область сохраняет�
   await expect(page.locator('.lab-summary').getByRole('button', { name: 'Скачать лабораторную работу' })).toBeVisible()
   expect((await request.get('./inputs/subject-areas/packs/SA06.zip')).ok()).toBeTruthy()
 })
+
+test('преподаватель скачивает полные архивы по семестрам', async ({ page, request }) => {
+  await page.goto('./')
+  await page.getByRole('button', { name: 'Настройка перед занятием' }).click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog).toContainText('все 30 вариантов')
+  await expect(dialog.getByRole('link', { name: '7 семестр' })).toHaveAttribute('href', /teacher-packs\/semester-7-all\.zip$/)
+  await expect(dialog.getByRole('link', { name: '8 семестр' })).toHaveAttribute('href', /teacher-packs\/semester-8-all\.zip$/)
+  await expect(dialog.getByRole('link', { name: 'Все семестры' })).toHaveAttribute('href', /teacher-packs\/all-semesters\.zip$/)
+  for (const archive of ['semester-7-all.zip', 'semester-8-all.zip', 'all-semesters.zip']) {
+    const response = await request.get(`./teacher-packs/${archive}`)
+    expect(response.ok()).toBeTruthy()
+  }
+})

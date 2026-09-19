@@ -18,6 +18,7 @@ SEMESTER_ROOTS = {
     8: INPUT_ROOT / "semester-8",
 }
 PACK_ROOT = ROOT / "public" / "inputs" / "subject-areas" / "packs"
+TEACHER_PACK_ROOT = ROOT / "public" / "teacher-packs"
 
 
 PROFILE_VALUES = [
@@ -181,6 +182,27 @@ def markdown_source(lab: dict[str, object], area: dict[str, object], profile: di
     return "\n".join(lines).rstrip() + "\n"
 
 
+def assignment_text(lab: dict[str, object]) -> str:
+    lines = [
+        f"# Лабораторная работа №{lab['semesterLabNumber']} — {lab['title']}", "",
+        "## Цель работы", "", str(lab["goal"]), "",
+        "## Инструменты", "",
+    ]
+    lines.extend(f"- {item}" for item in lab["tools"])
+    lines.extend(["", "## Порядок выполнения", ""])
+    for index, step in enumerate(lab["taskSteps"], 1):
+        lines.extend([
+            f"### Шаг {index}. {step['action']}", "",
+            f"**С чем работать:** {step['sources']}", "",
+            f"**Результат:** {step['result']}", "",
+            f"**Проверка:** {step['check']}", "",
+        ])
+    lines.extend(["## Результаты работы", ""])
+    lines.extend(f"- {item}" for item in lab["deliverables"])
+    lines.extend(["", "## Оценивание", "", str(lab["assessment"]), ""])
+    return "\n".join(lines)
+
+
 def main() -> None:
     profile_records = profiles()
     area_records = areas()
@@ -190,7 +212,7 @@ def main() -> None:
     if len(profile_records) != 6 or any(len(profile["characteristics"]) != 5 for profile in profile_records):
         raise RuntimeError("Ожидаются 6 групп с пятью характеристиками")
 
-    for target in (SOURCE_ROOT, *SEMESTER_ROOTS.values(), PACK_ROOT):
+    for target in (SOURCE_ROOT, *SEMESTER_ROOTS.values(), PACK_ROOT, TEACHER_PACK_ROOT):
         resolved = target.resolve()
         if not resolved.is_relative_to(ROOT.resolve()):
             raise RuntimeError(f"Небезопасный путь: {resolved}")
@@ -278,6 +300,30 @@ def main() -> None:
                 semester_file_count += 1
             readme_lines.append(f"- `LR{number:02d}` — {lab['title']} (30 вариантов)")
         (semester_root / "README.md").write_text("\n".join(readme_lines) + "\n", encoding="utf-8")
+
+    def add_to_archive(archive: zipfile.ZipFile, archive_name: str, data: bytes) -> None:
+        info = zipfile.ZipInfo(archive_name, date_time=(2026, 1, 1, 0, 0, 0))
+        info.compress_type = zipfile.ZIP_DEFLATED
+        info.external_attr = 0o100644 << 16
+        archive.writestr(info, data)
+
+    def write_teacher_pack(target: Path, selected_semesters: list[int]) -> None:
+        with zipfile.ZipFile(target, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            for semester in selected_semesters:
+                semester_root = SEMESTER_ROOTS[semester]
+                prefix = f"semester-{semester}"
+                for file in sorted(semester_root.rglob("*")):
+                    if file.is_file():
+                        add_to_archive(archive, f"{prefix}/{file.relative_to(semester_root).as_posix()}", file.read_bytes())
+                for lab in semester_labs[semester]:
+                    report_file = ROOT / "public" / "reports" / str(lab["reportFile"])
+                    lab_number = int(lab["semesterLabNumber"])
+                    add_to_archive(archive, f"{prefix}/LR{lab_number:02d}/Задание.md", assignment_text(lab).encode("utf-8"))
+                    add_to_archive(archive, f"{prefix}/LR{lab_number:02d}/Шаблон_отчёта.docx", report_file.read_bytes())
+
+    write_teacher_pack(TEACHER_PACK_ROOT / "semester-7-all.zip", [7])
+    write_teacher_pack(TEACHER_PACK_ROOT / "semester-8-all.zip", [8])
+    write_teacher_pack(TEACHER_PACK_ROOT / "all-semesters.zip", [7, 8])
 
     print(
         f"OK: {len(area_records)} областей, {len(profile_records)} групп, "

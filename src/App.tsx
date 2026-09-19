@@ -83,7 +83,7 @@ function CourseApp() {
 
   if (route.kind === 'lab' && lab) return <><LabPage lab={lab} subjectArea={subjectArea} profile={profile} onSubjectAreaChange={selectSubjectArea} /></>
   if (route.kind === 'lab') return <NotFound />
-  return <><SiteControls downloadSemester={sem=>bundle(labs.filter(l=>sem===null||l.semester===sem),subjectArea,profile)} /><Home subjectArea={subjectArea} profile={profile} onSubjectAreaChange={selectSubjectArea} /></>
+  return <><SiteControls /><Home subjectArea={subjectArea} profile={profile} onSubjectAreaChange={selectSubjectArea} /></>
 }
 
 function Brand() {

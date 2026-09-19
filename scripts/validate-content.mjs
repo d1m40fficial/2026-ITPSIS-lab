@@ -157,6 +157,10 @@ for (const [semester, labCount] of [[7, 7], [8, 5]]) {
     if (variantFiles.length !== 30) errors.push(`${semester} семестр, ЛР ${labNumber}: ожидалось 30 вариантов, найдено ${variantFiles.length}.`)
   }
 }
+for (const archiveName of ['semester-7-all.zip', 'semester-8-all.zip', 'all-semesters.zip']) {
+  const archivePath = resolve(root, 'public/teacher-packs', archiveName)
+  if (!existsSync(archivePath) || statSync(archivePath).size < 100_000) errors.push(`Нет полного преподавательского архива ${archiveName}.`)
+}
 
 const publicText = JSON.stringify({ labs, subjectAreas, profiles })
 if (/\b(?:ОК|ПК)\s*\d/iu.test(publicText)) errors.push('В публичных данных остались подписи ОК/ПК.')
