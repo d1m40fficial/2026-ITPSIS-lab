@@ -108,11 +108,23 @@ test('на странице работы нет LMS и есть нормокон
   await expect(section.locator('h2')).toHaveText('Требования к отчёту')
 })
 
-test('переход между работами расположен под карточками', async ({ page }) => {
+test('переход между работами живёт под карточкой и остаётся на виду', async ({ page }) => {
   await unlockAllWorks(page)
   await page.goto('./#/lab/7-01')
+  const side = page.locator('.lab-side')
   const pager = page.locator('.lab-pager')
+  await expect(side.locator('.lab-summary')).toBeVisible()
   await expect(pager).toBeVisible()
+  await expect(side.locator('.lab-summary + .lab-pager')).toHaveCount(1)
+
+  // Липкая колонка и удержание переходов на экране нужны только на широкой раскладке.
+  if ((page.viewportSize()?.width ?? 0) > 1100) {
+    await expect.poll(() => side.evaluate((node) => getComputedStyle(node).position)).toBe('sticky')
+    await page.locator('#task').scrollIntoViewIfNeeded()
+    await page.mouse.wheel(0, 1200)
+    await expect(pager).toBeInViewport()
+  }
+
   await expect(pager.locator('.lab-pager-prev')).toHaveCount(0)
   await expect(pager.locator('.lab-pager-next')).toContainText('Следующая работа')
   await expect(pager.locator('.lab-pager-next')).toContainText('МДК.06.02-ЛР02')
@@ -122,6 +134,20 @@ test('переход между работами расположен под к�
   await page.goto('./#/lab/8-05')
   await expect(page.locator('.lab-pager-prev')).toContainText('Предыдущая работа')
   await expect(page.locator('.lab-pager-next')).toHaveCount(0)
+})
+
+test('в блоке задания нет оценивания, а контрольный случай назван номером работы', async ({ page }) => {
+  await unlockAllWorks(page)
+  await page.goto('./#/lab/8-01')
+  const task = page.locator('#task')
+  await expect(task).toContainText('Последовательность действий')
+  await expect(task).not.toContainText('Как оценивается результат')
+  await expect(task.locator('h3', { hasText: 'оценивается результат' })).toHaveCount(0)
+  await expect(task.locator('.task-protocol > li')).toHaveCount(6)
+
+  const source = page.locator('#inputs')
+  await expect(source).toContainText('Работа 8, вариант SA01')
+  await expect(source).not.toContainText('Работа 8-01')
 })
 
 test('изображения загружены и страница не выходит за ширину экрана', async ({ page }) => {
@@ -135,7 +161,7 @@ test('клавиатурная навигация, задание и крите�
   await unlockAllWorks(page);
   await page.goto('./#/lab/7-01');await page.keyboard.press('Tab');await expect(page.locator('.skip-link')).toBeFocused();await page.locator('.skip-link').press('Enter');await expect(page.locator('#main-content')).toBeFocused();
   await expect(page.locator('.characteristic-card')).toHaveCount(5);await expect(page.locator('.task-protocol > li')).toHaveCount(6);
-  await expect(page.locator('#theory')).toContainText('ITIL 4');await expect(page.locator('#task')).toContainText('Как оценивается результат');
+  await expect(page.locator('#theory')).toContainText('ITIL 4');await expect(page.locator('#task details summary')).toHaveText('Дополнительное задание');
   await expect(page.locator('#sequence')).toContainText('Результат этой лабораторной работы');
 })
 

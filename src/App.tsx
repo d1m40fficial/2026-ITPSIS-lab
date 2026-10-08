@@ -414,7 +414,6 @@ function LabPage({ lab, subjectArea, profile, onSubjectAreaChange }: { lab: Lab;
               <p className="task-scope"><strong>Все действия обязательны.</strong> Дополнительное задание ниже необязательно и не увеличивает максимальный балл.</p>
               <TaskProtocol actions={lab.taskSteps.map(s=>labText(s.action))} guides={methodology.steps} subjectArea={subjectArea} />
               <details><summary>Дополнительное задание</summary><p>{labText(lab.optionalTask.action)}</p><p>{labText(lab.optionalTask.result)}</p><p>{labText(lab.optionalTask.check)}</p></details>
-              <h3>Как оценивается результат</h3><p>{lab.assessment}</p>
             </ContentSection>
 
             <ContentSection id="self-check" number="09" label="Перед отправкой" title="Самопроверка" icon={<ClipboardCheck aria-hidden="true" />}>
@@ -433,27 +432,28 @@ function LabPage({ lab, subjectArea, profile, onSubjectAreaChange }: { lab: Lab;
             </ContentSection>
           </article>
 
-          <aside className="lab-summary" aria-label="Краткая карточка работы">
-            <p className="eyebrow">Карточка работы</p>
-            <dl>
-              <div><dt>ID</dt><dd>{courseConfig.code}-{labCode(lab.number)}</dd></div>
-              <div><dt>Результат</dt><dd>{lab.practicalResult}</dd></div>
-              <div><dt>Учебный блок</dt><dd>{lab.blockTitle}</dd></div>
-            </dl>
-            <div className="summary-actions" aria-label="Шаблон работы">
-              <button className="button primary" type="button" disabled={packageStatus === 'preparing'} onClick={preparePackage}>
-                <Download aria-hidden="true" size={18} /> {packageStatus === 'preparing' ? 'Подготовка…' : packageStatus === 'error' ? 'Повторить скачивание' : 'Скачать лабораторную работу'}
-              </button>
+          <aside className="lab-side" aria-label="Карточка работы и переходы">
+            <div className="lab-summary">
+              <p className="eyebrow">Карточка работы</p>
+              <dl>
+                <div><dt>ID</dt><dd>{courseConfig.code}-{labCode(lab.number)}</dd></div>
+                <div><dt>Результат</dt><dd>{lab.practicalResult}</dd></div>
+                <div><dt>Учебный блок</dt><dd>{lab.blockTitle}</dd></div>
+              </dl>
+              <div className="summary-actions" aria-label="Шаблон работы">
+                <button className="button primary" type="button" disabled={packageStatus === 'preparing'} onClick={preparePackage}>
+                  <Download aria-hidden="true" size={18} /> {packageStatus === 'preparing' ? 'Подготовка…' : packageStatus === 'error' ? 'Повторить скачивание' : 'Скачать лабораторную работу'}
+                </button>
+              </div>
+              {packageStatus === 'error' && <p className="package-error" role="status">Не удалось подготовить комплект. Проверьте соединение и повторите скачивание.</p>}
+              <a className="summary-link" href="#/"><HomeIcon aria-hidden="true" size={15} /> Ко всем работам</a>
             </div>
-            {packageStatus === 'error' && <p className="package-error" role="status">Не удалось подготовить комплект. Проверьте соединение и повторите скачивание.</p>}
-            <a className="summary-link" href="#/"><HomeIcon aria-hidden="true" size={15} /> Ко всем работам</a>
+            <nav className="lab-pager" aria-label="Соседние лабораторные работы">
+              {previous ? <a className="lab-pager-prev" href={`#/lab/${previous.slug}`}><ArrowLeft aria-hidden="true" /> <span><small>Предыдущая работа</small>{courseConfig.code}-{labCode(previous.number)}</span></a> : <span className="lab-pager-empty" />}
+              {next ? <a className="lab-pager-next" href={`#/lab/${next.slug}`}><span><small>Следующая работа</small>{courseConfig.code}-{labCode(next.number)}</span> <ArrowRight aria-hidden="true" /></a> : <span className="lab-pager-empty" />}
+            </nav>
           </aside>
         </div>
-
-        <nav className="lab-pager" aria-label="Соседние лабораторные работы">
-          {previous ? <a className="lab-pager-prev" href={`#/lab/${previous.slug}`}><ArrowLeft aria-hidden="true" /> <span><small>Предыдущая работа</small>{courseConfig.code}-{labCode(previous.number)}</span></a> : <span />}
-          {next ? <a className="lab-pager-next" href={`#/lab/${next.slug}`}><span><small>Следующая работа</small>{courseConfig.code}-{labCode(next.number)}</span> <ArrowRight aria-hidden="true" /></a> : <span />}
-        </nav>
       </main>
     </div>
   )

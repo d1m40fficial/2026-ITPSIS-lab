@@ -229,7 +229,8 @@ tbody tr:last-child td { border-bottom: 0; }
 .lms-steps { margin: 1rem 0 1.3rem; padding-left: 1.35rem; display: grid; gap: 0.55rem; color: #44444b; line-height: 1.5; }
 .lms-steps li::marker { color: var(--red); font-weight: 900; }
 .submission-actions { display: flex; flex-wrap: wrap; gap: 0.65rem; }
-.lab-summary { position: sticky; top: 1rem; padding: 1.25rem; border-top: 0.35rem solid var(--red); border-radius: 1rem; background: var(--black); color: #fff; }
+.lab-side { position: sticky; top: 1rem; display: grid; gap: 0.7rem; }
+.lab-summary { padding: 1.25rem; border-top: 0.35rem solid var(--red); border-radius: 1rem; background: var(--black); color: #fff; }
 .lab-summary .eyebrow { color: #ff4f56; }
 .lab-summary dl { margin: 1rem 0 1.2rem; }
 .lab-summary dl div { padding: 0.72rem 0; border-bottom: 1px solid #414147; }
@@ -243,12 +244,11 @@ tbody tr:last-child td { border-bottom: 0; }
 .summary-secondary svg:last-child { margin-left: auto; }
 .summary-link { margin-top: 0.9rem; color: #fff; display: flex; align-items: center; gap: 0.45rem; font-size: 0.84rem; font-weight: 800; text-decoration: none; }
 .summary-link:hover { color: #ff777d; }
-.lab-pager { max-width: 92rem; margin: 0 auto; padding: 0 clamp(1rem, 4vw, 4.5rem) clamp(2rem, 4vw, 3.4rem); display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
-.lab-pager a { min-height: 4.6rem; padding: 0.9rem 1rem; border: 1px solid var(--border); border-top: 0.3rem solid var(--red); border-radius: 0.8rem; background: var(--surface); box-shadow: 0 0.6rem 1.6rem rgb(28 28 28 / 0.05); display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; font-size: 0.9rem; font-weight: 850; text-decoration: none; }
+.lab-pager { display: grid; grid-template-columns: 1fr; gap: 0.55rem; }
+.lab-pager a { min-height: 3.6rem; padding: 0.7rem 0.85rem; border: 1px solid var(--border); border-top: 0.3rem solid var(--red); border-radius: 0.8rem; background: var(--surface); box-shadow: 0 0.6rem 1.6rem rgb(28 28 28 / 0.05); display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; font-size: 0.84rem; font-weight: 850; text-decoration: none; }
 .lab-pager a:hover { border-color: #f06f75; border-top-color: var(--red); }
-.lab-pager a:last-child { text-align: right; }
-.lab-pager small { display: block; margin-bottom: 0.15rem; color: var(--muted); font-size: 0.7rem; font-weight: 800; }
-.lab-pager > span { display: block; }
+.lab-pager small { display: block; margin-bottom: 0.15rem; color: var(--muted); font-size: 0.68rem; font-weight: 800; }
+.lab-pager-empty { display: none; }
 
 .course-controls { display: flex; align-items: center; gap: 0.5rem; }
 .access-gate { min-height: 100vh; padding: clamp(1.5rem, 5vw, 4rem) clamp(1rem, 4vw, 4.5rem); display: grid; place-items: center; }
@@ -283,7 +283,7 @@ tbody tr:last-child td { border-bottom: 0; }
   .block-grid, .lms-section { grid-template-columns: 1fr; }
   .lms-section h2 { max-width: 18ch; }
   .lab-page-grid { grid-template-columns: 1fr; }
-  .lab-summary { position: static; grid-row: 1; }
+  .lab-side { position: static; grid-row: 1; }
 }
 
 @media (max-width: 620px) {
@@ -316,8 +316,6 @@ tbody tr:last-child td { border-bottom: 0; }
   .submission-actions { display: grid; }
   .submission-actions .button { width: 100%; }
   th, td { padding: 0.65rem; min-width: 8rem; }
-  .lab-pager { grid-template-columns: 1fr; }
-  .lab-pager > span { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -329,7 +327,7 @@ tbody tr:last-child td { border-bottom: 0; }
   @page { size: A4; margin: 14mm 12mm 15mm 18mm; }
   :root { font-family: Arial, sans-serif; }
   body { background: #fff; color: #000; font-size: 10pt; }
-  .skip-link, .lab-breadcrumb, .variant-picker, .lab-summary, .lab-pager { display: none !important; }
+  .skip-link, .lab-breadcrumb, .variant-picker, .lab-side { display: none !important; }
   .lab-page-grid { display: block; max-width: none; padding: 0; }
   .lab-content { display: block; }
   .lab-hero, .content-section { margin: 0 0 5mm; padding: 6mm; border: 1px solid #aaa; border-radius: 0; box-shadow: none; background: #fff !important; color: #000 !important; break-inside: auto; }
