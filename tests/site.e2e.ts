@@ -27,18 +27,20 @@ test('главная страница показывает структуру к
   await expect(page.locator('footer')).toHaveCount(0)
 
   // Кнопки темы, справки и полного экрана прижаты к правому краю шапки.
+  // template.css однажды задал им margin:auto, и в flex-шапке они встали по центру.
   const controlsOffset = await page.evaluate(() => {
     const header = document.querySelector('.site-header')!
-    const style = getComputedStyle(header)
-    const contentRight = header.clientWidth - parseFloat(style.paddingRight)
+    const contentRight = header.getBoundingClientRect().right - parseFloat(getComputedStyle(header).paddingRight)
     return document.querySelector('.course-controls')!.getBoundingClientRect().right - contentRight
   })
   expect(Math.abs(controlsOffset)).toBeLessThanOrEqual(1)
 
-  // Карточки блоков компактны и одинаковой высоты: без пустого места снизу.
-  const cardHeights = await page.locator('.block-card').evaluateAll((cards) => cards.map((card) => Math.round(card.getBoundingClientRect().height)))
-  expect(cardHeights[0]).toBe(cardHeights[1])
-  expect(cardHeights[0]).toBeLessThan(420)
+  // Карточки блоков не растягиваются искусственно: прежде стоял min-height: 23rem.
+  const cards = await page.locator('.block-card').evaluateAll((nodes) =>
+    nodes.map((node) => ({ minHeight: getComputedStyle(node).minHeight, height: node.getBoundingClientRect().height })))
+  for (const card of cards) expect(card.minHeight).toMatch(/^(?:auto|0px)$/)
+  // Разница высот допускается: переносы заголовков зависят от шрифта и ширины.
+  expect(Math.abs(cards[0].height - cards[1].height)).toBeLessThanOrEqual(60)
 })
 
 test('на главной нет семестров, баллов, LMS и кнопок служебного доступа', async ({ page }) => {
