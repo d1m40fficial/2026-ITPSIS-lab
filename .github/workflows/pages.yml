@@ -31,7 +31,11 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm run check
       - run: pnpm run test:e2e
+      # Pages включается самим workflow при пуше в main: без этого deploy
+      # завершается успехом, но публиковать некуда и адрес отдаёт 404.
       - uses: actions/configure-pages@v5
+        with:
+          enablement: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
