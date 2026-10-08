@@ -1,7 +1,7 @@
 field;value
 variant;19
 code;SA19
-subject_area;Экзаменационный терминал
+subject_area;Мобильное учебное рабочее место
 system_code;ITPSIS-SA19
-critical_function;запуск и сдача учебного задания
-assets;сеансы, ответы, журнал контроля
+critical_function;защищённый доступ к учебным сервисам
+assets;устройство, профиль, токены

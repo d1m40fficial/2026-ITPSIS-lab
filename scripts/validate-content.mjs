@@ -98,11 +98,14 @@ for (const lab of labs) {
   if (lab.selfCheck?.length !== 6) errors.push(`${prefix}: должно быть ровно 6 однозначных пунктов самопроверки.`)
   if (lab.sourceReferences?.length < 4) errors.push(`${prefix}: недостаточно обязательных ссылок на исходные данные.`)
   if (lab.reportSections?.length < 3) errors.push(`${prefix}: форма должна содержать предметный результат, основания и контроль.`)
-  if (lab.lmsSteps?.length !== 6) errors.push(`${prefix}: должно быть 6 шагов сдачи в LMS.`)
+  if (lab.lmsSteps?.length !== 4) errors.push(`${prefix}: должно быть 4 шага подготовки отчёта.`)
+  if (lab.wordRequirements?.length !== 6) errors.push(`${prefix}: должно быть 6 требований к Word-файлу.`)
+  if (!lab.wordRequirements?.some((item) => item.startsWith('Удалите серые подсказки'))) errors.push(`${prefix}: нет требования удалить серые подсказки.`)
+  if (!lab.wordRequirements?.some((item) => item === 'Оформите под нормоконтроль')) errors.push(`${prefix}: нет требования оформить отчёт под нормоконтроль.`)
 
   const expectedReport = `S${expectedSemester}_LR${String(expectedLocalNumber).padStart(2, '0')}_template.docx`
   if (lab.reportFile !== expectedReport) errors.push(`${prefix}: имя шаблона должно быть ${expectedReport}.`)
-  const expectedStudentFile = `Фамилия_Группа_МДК0602_С${expectedSemester}_ЛР${String(expectedLocalNumber).padStart(2, '0')}.docx`
+  const expectedStudentFile = `Фамилия_Группа_МДК0602_ЛР${String(lab.number).padStart(2, '0')}.docx`
   if (lab.recommendedFileName !== expectedStudentFile) errors.push(`${prefix}: неверное рекомендуемое имя файла.`)
   const reportPath = resolve(root, 'public/reports', expectedReport)
   if (!existsSync(reportPath)) errors.push(`${prefix}: отсутствует ${expectedReport}.`)
@@ -125,12 +128,18 @@ for (const semester of [7, 8]) {
   if (semesterPoints !== 50) errors.push(`В ${semester} семестре ${semesterPoints} баллов, ожидалось 50.`)
 }
 
-if (!Array.isArray(subjectAreas) || subjectAreas.length !== 30) errors.push(`Ожидалось 30 предметных областей, найдено ${subjectAreas?.length ?? 0}.`)
+if (!Array.isArray(subjectAreas) || subjectAreas.length !== 29) errors.push(`Ожидалось 29 предметных областей, найдено ${subjectAreas?.length ?? 0}.`)
 if (!Array.isArray(profiles) || profiles.length !== 6) errors.push(`Ожидалось 6 групп вариантов, найдено ${profiles?.length ?? 0}.`)
-if (new Set(subjectAreas?.map((area) => area.title)).size !== 30) errors.push('Названия 30 предметных областей должны быть уникальны.')
+if (new Set(subjectAreas?.map((area) => area.title)).size !== 29) errors.push('Названия 29 предметных областей должны быть уникальны.')
 for (const profile of profiles ?? []) {
   if (profile.characteristics?.length !== 5) errors.push(`Группа ${profile.id}: ожидалось 5 характеристик.`)
-  if (subjectAreas.filter((area) => area.profileId === profile.id).length !== 5) errors.push(`Группа ${profile.id}: ожидалось 5 вариантов.`)
+  const areasInProfile = subjectAreas.filter((area) => area.profileId === profile.id)
+  if (!areasInProfile.length) errors.push(`Группа ${profile.id}: нет ни одной предметной области.`)
+  else {
+    const padded = (value) => String(value).padStart(2, '0')
+    const expectedRange = `${padded(areasInProfile[0].id)}–${padded(areasInProfile[areasInProfile.length - 1].id)}`
+    if (profile.variantRange !== expectedRange) errors.push(`Группа ${profile.id}: диапазон вариантов должен быть ${expectedRange}.`)
+  }
 }
 for (const area of subjectAreas ?? []) {
   const expectedCode = `SA${String(area.id).padStart(2, '0')}`
@@ -145,7 +154,7 @@ for (const area of subjectAreas ?? []) {
 const packNames = existsSync(resolve(root, 'public/inputs/subject-areas/packs'))
   ? readdirSync(resolve(root, 'public/inputs/subject-areas/packs')).filter((name) => /^SA\d{2}\.zip$/.test(name))
   : []
-if (packNames.length !== 30) errors.push(`Ожидалось 30 ZIP-пакетов, найдено ${packNames.length}.`)
+if (packNames.length !== 29) errors.push(`Ожидалось 29 ZIP-пакетов, найдено ${packNames.length}.`)
 
 for (const [semester, labCount] of [[7, 7], [8, 5]]) {
   const semesterRoot = resolve(root, `inputs/subject-areas/semester-${semester}`)
@@ -154,7 +163,7 @@ for (const [semester, labCount] of [[7, 7], [8, 5]]) {
     const variantFiles = existsSync(labDirectory)
       ? readdirSync(labDirectory).filter((name) => /^variant-\d{2}-SA\d{2}\.md$/.test(name))
       : []
-    if (variantFiles.length !== 30) errors.push(`${semester} семестр, ЛР ${labNumber}: ожидалось 30 вариантов, найдено ${variantFiles.length}.`)
+    if (variantFiles.length !== 29) errors.push(`${semester} семестр, ЛР ${labNumber}: ожидалось 29 вариантов, найдено ${variantFiles.length}.`)
   }
 }
 for (const archiveName of ['semester-7-all.zip', 'semester-8-all.zip', 'all-semesters.zip']) {
@@ -169,4 +178,4 @@ if (errors.length) {
   console.error(errors.map((message) => `- ${message}`).join('\n'))
   process.exit(1)
 }
-console.log(`OK: ${labs.length} методически структурированных последовательных работ, ${totalPoints} баллов, 30 предметных областей, 30 ZIP-пакетов и 12 DOCX-шаблонов.`)
+console.log(`OK: ${labs.length} методически структурированных последовательных работ, ${totalPoints} баллов, ${subjectAreas.length} предметных областей, ${packNames.length} ZIP-пакетов и 12 DOCX-шаблонов.`)

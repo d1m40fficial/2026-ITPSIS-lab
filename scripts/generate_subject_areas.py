@@ -67,7 +67,6 @@ AREAS = [
     ("Служба Service Desk", "регистрация и обработка обращений", ["обращения", "SLA", "комментарии"]),
     ("Учёт компьютерного оборудования", "поиск актива и истории его состояния", ["активы", "перемещения", "инвентаризация"]),
     ("Система заявок на доступ", "согласование и выдача прав", ["заявки", "роли", "согласования"]),
-    ("Шина интеграции LMS", "доставка событий между учебными системами", ["события", "очереди", "повторы"]),
     ("Синхронизация реестра студентов", "передача актуальных учётных записей", ["реестр", "пакеты", "контроль целостности"]),
     ("Сервис экспорта отчётов", "формирование и выдача отчёта", ["задания экспорта", "файлы", "статусы"]),
     ("Шлюз учебных уведомлений", "своевременная доставка уведомлений", ["сообщения", "каналы", "повторы"]),
@@ -97,17 +96,18 @@ def csv_text(header: list[str], rows: list[list[object]]) -> str:
     return stream.getvalue()
 
 
-def profiles() -> list[dict[str, object]]:
+def profiles(area_records: list[dict[str, object]]) -> list[dict[str, object]]:
     result = []
     for profile_id, (title, values) in enumerate(PROFILE_VALUES, 1):
         characteristics = [
             {"code": code, "name": name, "value": value, "example": example}
             for (code, name, example), value in zip(CHARACTERISTICS, values, strict=True)
         ]
+        numbers = [int(area["id"]) for area in area_records if area["profileId"] == profile_id]
         result.append({
             "id": profile_id,
             "title": title,
-            "variantRange": f"{(profile_id - 1) * 5 + 1:02d}–{profile_id * 5:02d}",
+            "variantRange": f"{numbers[0]:02d}–{numbers[-1]:02d}",
             "characteristics": characteristics,
         })
     return result
@@ -204,13 +204,16 @@ def assignment_text(lab: dict[str, object]) -> str:
 
 
 def main() -> None:
-    profile_records = profiles()
     area_records = areas()
+    profile_records = profiles(area_records)
     labs = json.loads(LABS_FILE.read_text(encoding="utf-8"))["labs"]
-    if len(area_records) != 30 or len({area["title"] for area in area_records}) != 30:
-        raise RuntimeError("Ожидаются 30 уникальных предметных областей")
+    if len(area_records) != 29 or len({area["title"] for area in area_records}) != 29:
+        raise RuntimeError("Ожидаются 29 уникальных предметных областей")
     if len(profile_records) != 6 or any(len(profile["characteristics"]) != 5 for profile in profile_records):
         raise RuntimeError("Ожидаются 6 групп с пятью характеристиками")
+    empty_profiles = [profile["id"] for profile in profile_records if not any(area["profileId"] == profile["id"] for area in area_records)]
+    if empty_profiles:
+        raise RuntimeError(f"Группы без вариантов: {empty_profiles}")
 
     for target in (SOURCE_ROOT, *SEMESTER_ROOTS.values(), PACK_ROOT, TEACHER_PACK_ROOT):
         resolved = target.resolve()
@@ -252,8 +255,7 @@ def main() -> None:
             "- `system-passport.csv` — паспорт и активы;\n"
             "- `quality-characteristics.csv` — пять общих характеристик группы;\n"
             "- `labs/S7_LR01.md`–`labs/S7_LR07.md` — работы 7 семестра;\n"
-            "- `labs/S8_LR01.md`–`labs/S8_LR05.md` — работы 8 семестра.\n"
-        )
+            "- `labs/S8_LR01.md`–`labs/S8_LR05.md` — работы 8 семестра.\n"        )
         (area_root / "README.md").write_text(readme, encoding="utf-8")
         (area_root / "system-passport.csv").write_text(csv_text(
             ["field", "value"],
@@ -287,7 +289,7 @@ def main() -> None:
     for semester, semester_root in SEMESTER_ROOTS.items():
         readme_lines = [
             f"# {semester} семестр", "",
-            "В каждой папке лабораторной работы собраны все 30 вариантов.", "",
+            f"В каждой папке лабораторной работы собраны все {len(area_records)} вариантов.", "",
             "## Состав", "",
         ]
         for lab in semester_labs[semester]:
@@ -298,7 +300,7 @@ def main() -> None:
                 variant_name = f"variant-{int(area['id']):02d}-{area['code']}.md"
                 (lab_dir / variant_name).write_text(rendered_source, encoding="utf-8")
                 semester_file_count += 1
-            readme_lines.append(f"- `LR{number:02d}` — {lab['title']} (30 вариантов)")
+            readme_lines.append(f"- `LR{number:02d}` — {lab['title']} ({len(area_records)} вариантов)")
         (semester_root / "README.md").write_text("\n".join(readme_lines) + "\n", encoding="utf-8")
 
     def add_to_archive(archive: zipfile.ZipFile, archive_name: str, data: bytes) -> None:

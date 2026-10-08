@@ -1,7 +1,7 @@
 field;value
 variant;26
 code;SA26
-subject_area;Файловое хранилище
+subject_area;Сервер резервного копирования
 system_code;ITPSIS-SA26
-critical_function;чтение и запись учебных файлов
-assets;файлы, права, журнал операций
+critical_function;создание и восстановление копий
+assets;задания, копии, каталог носителей

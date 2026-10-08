@@ -13,7 +13,7 @@ const reportFiles = existsSync(reports) ? readdirSync(reports).filter((name) => 
 if (reportFiles.length !== 12) errors.push(`В dist/reports найдено ${reportFiles.length} DOCX вместо 12.`)
 const subjectPacks = resolve(dist, 'inputs/subject-areas/packs')
 const subjectPackFiles = existsSync(subjectPacks) ? readdirSync(subjectPacks).filter((name) => /^SA\d{2}\.zip$/.test(name)) : []
-if (subjectPackFiles.length !== 30) errors.push(`В dist найдено ${subjectPackFiles.length} ZIP-пакетов вместо 30.`)
+if (subjectPackFiles.length !== 29) errors.push(`В dist найдено ${subjectPackFiles.length} ZIP-пакетов вместо 29.`)
 const html = existsSync(resolve(dist, 'index.html')) ? readFileSync(resolve(dist, 'index.html'), 'utf8') : ''
 for (const match of html.matchAll(/(?:src|href)="([^"]+)"/g)) {
   const link = match[1]
@@ -25,4 +25,4 @@ if (errors.length) {
   console.error(errors.map((item) => `- ${item}`).join('\n'))
   process.exit(1)
 }
-console.log('OK: собранный сайт содержит все обязательные ресурсы, 12 шаблонов и 30 ZIP-пакетов.')
+console.log('OK: собранный сайт содержит все обязательные ресурсы, 12 шаблонов и 29 ZIP-пакетов.')

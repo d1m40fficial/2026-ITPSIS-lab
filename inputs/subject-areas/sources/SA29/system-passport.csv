@@ -1,7 +1,7 @@
 field;value
 variant;29
 code;SA29
-subject_area;Электронный архив документов
+subject_area;Хранилище результатов аттестации
 system_code;ITPSIS-SA29
-critical_function;поиск и выдача неизменённого документа
-assets;документы, метаданные, подписи
+critical_function;запись и выдача подтверждённых результатов
+assets;результаты, протоколы, журнал изменений

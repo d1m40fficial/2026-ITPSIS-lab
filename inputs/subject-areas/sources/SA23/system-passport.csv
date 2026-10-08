@@ -1,7 +1,7 @@
 field;value
 variant;23
 code;SA23
-subject_area;Контроллер Wi-Fi
+subject_area;Сервис удалённого доступа
 system_code;ITPSIS-SA23
-critical_function;подключение авторизованных учебных устройств
-assets;точки доступа, клиенты, сеансы
+critical_function;защищённое подключение к учебной сети
+assets;туннели, сертификаты, журнал сеансов

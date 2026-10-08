@@ -188,7 +188,7 @@
     {
       "id": 6,
       "title": "Критичные сервисы данных и доступа",
-      "variantRange": "26–30",
+      "variantRange": "26–29",
       "characteristics": [
         {
           "code": "C1",
@@ -377,23 +377,8 @@
     {
       "id": 11,
       "code": "SA11",
-      "title": "Шина интеграции LMS",
-      "systemCode": "ITPSIS-SA11",
-      "description": "Учебная предметная область «Шина интеграции LMS»; все имена и события синтетические.",
-      "criticalFunction": "доставка событий между учебными системами",
-      "assets": [
-        "события",
-        "очереди",
-        "повторы"
-      ],
-      "profileId": 3,
-      "pack": "inputs/subject-areas/packs/SA11.zip"
-    },
-    {
-      "id": 12,
-      "code": "SA12",
       "title": "Синхронизация реестра студентов",
-      "systemCode": "ITPSIS-SA12",
+      "systemCode": "ITPSIS-SA11",
       "description": "Учебная предметная область «Синхронизация реестра студентов»; все имена и события синтетические.",
       "criticalFunction": "передача актуальных учётных записей",
       "assets": [
@@ -402,13 +387,13 @@
         "контроль целостности"
       ],
       "profileId": 3,
-      "pack": "inputs/subject-areas/packs/SA12.zip"
+      "pack": "inputs/subject-areas/packs/SA11.zip"
     },
     {
-      "id": 13,
-      "code": "SA13",
+      "id": 12,
+      "code": "SA12",
       "title": "Сервис экспорта отчётов",
-      "systemCode": "ITPSIS-SA13",
+      "systemCode": "ITPSIS-SA12",
       "description": "Учебная предметная область «Сервис экспорта отчётов»; все имена и события синтетические.",
       "criticalFunction": "формирование и выдача отчёта",
       "assets": [
@@ -417,13 +402,13 @@
         "статусы"
       ],
       "profileId": 3,
-      "pack": "inputs/subject-areas/packs/SA13.zip"
+      "pack": "inputs/subject-areas/packs/SA12.zip"
     },
     {
-      "id": 14,
-      "code": "SA14",
+      "id": 13,
+      "code": "SA13",
       "title": "Шлюз учебных уведомлений",
-      "systemCode": "ITPSIS-SA14",
+      "systemCode": "ITPSIS-SA13",
       "description": "Учебная предметная область «Шлюз учебных уведомлений»; все имена и события синтетические.",
       "criticalFunction": "своевременная доставка уведомлений",
       "assets": [
@@ -432,13 +417,13 @@
         "повторы"
       ],
       "profileId": 3,
-      "pack": "inputs/subject-areas/packs/SA14.zip"
+      "pack": "inputs/subject-areas/packs/SA13.zip"
     },
     {
-      "id": 15,
-      "code": "SA15",
+      "id": 14,
+      "code": "SA14",
       "title": "Очередь преобразования документов",
-      "systemCode": "ITPSIS-SA15",
+      "systemCode": "ITPSIS-SA14",
       "description": "Учебная предметная область «Очередь преобразования документов»; все имена и события синтетические.",
       "criticalFunction": "преобразование и сохранение учебного файла",
       "assets": [
@@ -447,13 +432,13 @@
         "результаты"
       ],
       "profileId": 3,
-      "pack": "inputs/subject-areas/packs/SA15.zip"
+      "pack": "inputs/subject-areas/packs/SA14.zip"
     },
     {
-      "id": 16,
-      "code": "SA16",
+      "id": 15,
+      "code": "SA15",
       "title": "Компьютерный класс",
-      "systemCode": "ITPSIS-SA16",
+      "systemCode": "ITPSIS-SA15",
       "description": "Учебная предметная область «Компьютерный класс»; все имена и события синтетические.",
       "criticalFunction": "вход пользователя и запуск учебной среды",
       "assets": [
@@ -461,14 +446,14 @@
         "образы",
         "профили"
       ],
-      "profileId": 4,
-      "pack": "inputs/subject-areas/packs/SA16.zip"
+      "profileId": 3,
+      "pack": "inputs/subject-areas/packs/SA15.zip"
     },
     {
-      "id": 17,
-      "code": "SA17",
+      "id": 16,
+      "code": "SA16",
       "title": "Рабочее место преподавателя",
-      "systemCode": "ITPSIS-SA17",
+      "systemCode": "ITPSIS-SA16",
       "description": "Учебная предметная область «Рабочее место преподавателя»; все имена и события синтетические.",
       "criticalFunction": "доступ к учебным материалам и ведомостям",
       "assets": [
@@ -477,13 +462,13 @@
         "журналы"
       ],
       "profileId": 4,
-      "pack": "inputs/subject-areas/packs/SA17.zip"
+      "pack": "inputs/subject-areas/packs/SA16.zip"
     },
     {
-      "id": 18,
-      "code": "SA18",
+      "id": 17,
+      "code": "SA17",
       "title": "Медиааудитория",
-      "systemCode": "ITPSIS-SA18",
+      "systemCode": "ITPSIS-SA17",
       "description": "Учебная предметная область «Медиааудитория»; все имена и события синтетические.",
       "criticalFunction": "запуск презентации и вывод медиа",
       "assets": [
@@ -492,13 +477,13 @@
         "проектор"
       ],
       "profileId": 4,
-      "pack": "inputs/subject-areas/packs/SA18.zip"
+      "pack": "inputs/subject-areas/packs/SA17.zip"
     },
     {
-      "id": 19,
-      "code": "SA19",
+      "id": 18,
+      "code": "SA18",
       "title": "Экзаменационный терминал",
-      "systemCode": "ITPSIS-SA19",
+      "systemCode": "ITPSIS-SA18",
       "description": "Учебная предметная область «Экзаменационный терминал»; все имена и события синтетические.",
       "criticalFunction": "запуск и сдача учебного задания",
       "assets": [
@@ -507,13 +492,13 @@
         "журнал контроля"
       ],
       "profileId": 4,
-      "pack": "inputs/subject-areas/packs/SA19.zip"
+      "pack": "inputs/subject-areas/packs/SA18.zip"
     },
     {
-      "id": 20,
-      "code": "SA20",
+      "id": 19,
+      "code": "SA19",
       "title": "Мобильное учебное рабочее место",
-      "systemCode": "ITPSIS-SA20",
+      "systemCode": "ITPSIS-SA19",
       "description": "Учебная предметная область «Мобильное учебное рабочее место»; все имена и события синтетические.",
       "criticalFunction": "защищённый доступ к учебным сервисам",
       "assets": [
@@ -522,13 +507,13 @@
         "токены"
       ],
       "profileId": 4,
-      "pack": "inputs/subject-areas/packs/SA20.zip"
+      "pack": "inputs/subject-areas/packs/SA19.zip"
     },
     {
-      "id": 21,
-      "code": "SA21",
+      "id": 20,
+      "code": "SA20",
       "title": "Шлюз сети кампуса",
-      "systemCode": "ITPSIS-SA21",
+      "systemCode": "ITPSIS-SA20",
       "description": "Учебная предметная область «Шлюз сети кампуса»; все имена и события синтетические.",
       "criticalFunction": "маршрутизация разрешённого трафика",
       "assets": [
@@ -536,14 +521,14 @@
         "интерфейсы",
         "потоки"
       ],
-      "profileId": 5,
-      "pack": "inputs/subject-areas/packs/SA21.zip"
+      "profileId": 4,
+      "pack": "inputs/subject-areas/packs/SA20.zip"
     },
     {
-      "id": 22,
-      "code": "SA22",
+      "id": 21,
+      "code": "SA21",
       "title": "Сетевой экран учебной сети",
-      "systemCode": "ITPSIS-SA22",
+      "systemCode": "ITPSIS-SA21",
       "description": "Учебная предметная область «Сетевой экран учебной сети»; все имена и события синтетические.",
       "criticalFunction": "фильтрация и журналирование сетевых потоков",
       "assets": [
@@ -552,13 +537,13 @@
         "журнал потоков"
       ],
       "profileId": 5,
-      "pack": "inputs/subject-areas/packs/SA22.zip"
+      "pack": "inputs/subject-areas/packs/SA21.zip"
     },
     {
-      "id": 23,
-      "code": "SA23",
+      "id": 22,
+      "code": "SA22",
       "title": "Контроллер Wi-Fi",
-      "systemCode": "ITPSIS-SA23",
+      "systemCode": "ITPSIS-SA22",
       "description": "Учебная предметная область «Контроллер Wi-Fi»; все имена и события синтетические.",
       "criticalFunction": "подключение авторизованных учебных устройств",
       "assets": [
@@ -567,13 +552,13 @@
         "сеансы"
       ],
       "profileId": 5,
-      "pack": "inputs/subject-areas/packs/SA23.zip"
+      "pack": "inputs/subject-areas/packs/SA22.zip"
     },
     {
-      "id": 24,
-      "code": "SA24",
+      "id": 23,
+      "code": "SA23",
       "title": "Сервис удалённого доступа",
-      "systemCode": "ITPSIS-SA24",
+      "systemCode": "ITPSIS-SA23",
       "description": "Учебная предметная область «Сервис удалённого доступа»; все имена и события синтетические.",
       "criticalFunction": "защищённое подключение к учебной сети",
       "assets": [
@@ -582,13 +567,13 @@
         "журнал сеансов"
       ],
       "profileId": 5,
-      "pack": "inputs/subject-areas/packs/SA24.zip"
+      "pack": "inputs/subject-areas/packs/SA23.zip"
     },
     {
-      "id": 25,
-      "code": "SA25",
+      "id": 24,
+      "code": "SA24",
       "title": "Узел мониторинга",
-      "systemCode": "ITPSIS-SA25",
+      "systemCode": "ITPSIS-SA24",
       "description": "Учебная предметная область «Узел мониторинга»; все имена и события синтетические.",
       "criticalFunction": "сбор метрик и формирование сигналов",
       "assets": [
@@ -597,13 +582,13 @@
         "уведомления"
       ],
       "profileId": 5,
-      "pack": "inputs/subject-areas/packs/SA25.zip"
+      "pack": "inputs/subject-areas/packs/SA24.zip"
     },
     {
-      "id": 26,
-      "code": "SA26",
+      "id": 25,
+      "code": "SA25",
       "title": "Файловое хранилище",
-      "systemCode": "ITPSIS-SA26",
+      "systemCode": "ITPSIS-SA25",
       "description": "Учебная предметная область «Файловое хранилище»; все имена и события синтетические.",
       "criticalFunction": "чтение и запись учебных файлов",
       "assets": [
@@ -611,14 +596,14 @@
         "права",
         "журнал операций"
       ],
-      "profileId": 6,
-      "pack": "inputs/subject-areas/packs/SA26.zip"
+      "profileId": 5,
+      "pack": "inputs/subject-areas/packs/SA25.zip"
     },
     {
-      "id": 27,
-      "code": "SA27",
+      "id": 26,
+      "code": "SA26",
       "title": "Сервер резервного копирования",
-      "systemCode": "ITPSIS-SA27",
+      "systemCode": "ITPSIS-SA26",
       "description": "Учебная предметная область «Сервер резервного копирования»; все имена и события синтетические.",
       "criticalFunction": "создание и восстановление копий",
       "assets": [
@@ -627,13 +612,13 @@
         "каталог носителей"
       ],
       "profileId": 6,
-      "pack": "inputs/subject-areas/packs/SA27.zip"
+      "pack": "inputs/subject-areas/packs/SA26.zip"
     },
     {
-      "id": 28,
-      "code": "SA28",
+      "id": 27,
+      "code": "SA27",
       "title": "Служба идентификации",
-      "systemCode": "ITPSIS-SA28",
+      "systemCode": "ITPSIS-SA27",
       "description": "Учебная предметная область «Служба идентификации»; все имена и события синтетические.",
       "criticalFunction": "проверка учётной записи и выдача сеанса",
       "assets": [
@@ -642,13 +627,13 @@
         "сеансы"
       ],
       "profileId": 6,
-      "pack": "inputs/subject-areas/packs/SA28.zip"
+      "pack": "inputs/subject-areas/packs/SA27.zip"
     },
     {
-      "id": 29,
-      "code": "SA29",
+      "id": 28,
+      "code": "SA28",
       "title": "Электронный архив документов",
-      "systemCode": "ITPSIS-SA29",
+      "systemCode": "ITPSIS-SA28",
       "description": "Учебная предметная область «Электронный архив документов»; все имена и события синтетические.",
       "criticalFunction": "поиск и выдача неизменённого документа",
       "assets": [
@@ -657,13 +642,13 @@
         "подписи"
       ],
       "profileId": 6,
-      "pack": "inputs/subject-areas/packs/SA29.zip"
+      "pack": "inputs/subject-areas/packs/SA28.zip"
     },
     {
-      "id": 30,
-      "code": "SA30",
+      "id": 29,
+      "code": "SA29",
       "title": "Хранилище результатов аттестации",
-      "systemCode": "ITPSIS-SA30",
+      "systemCode": "ITPSIS-SA29",
       "description": "Учебная предметная область «Хранилище результатов аттестации»; все имена и события синтетические.",
       "criticalFunction": "запись и выдача подтверждённых результатов",
       "assets": [
@@ -672,7 +657,7 @@
         "журнал изменений"
       ],
       "profileId": 6,
-      "pack": "inputs/subject-areas/packs/SA30.zip"
+      "pack": "inputs/subject-areas/packs/SA29.zip"
     }
   ]
 }

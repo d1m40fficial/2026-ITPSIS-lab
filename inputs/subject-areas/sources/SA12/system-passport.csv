@@ -1,7 +1,7 @@
 field;value
 variant;12
 code;SA12
-subject_area;Синхронизация реестра студентов
+subject_area;Сервис экспорта отчётов
 system_code;ITPSIS-SA12
-critical_function;передача актуальных учётных записей
-assets;реестр, пакеты, контроль целостности
+critical_function;формирование и выдача отчёта
+assets;задания экспорта, файлы, статусы

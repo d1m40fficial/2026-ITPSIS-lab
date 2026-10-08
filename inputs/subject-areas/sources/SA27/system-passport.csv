@@ -1,7 +1,7 @@
 field;value
 variant;27
 code;SA27
-subject_area;Сервер резервного копирования
+subject_area;Служба идентификации
 system_code;ITPSIS-SA27
-critical_function;создание и восстановление копий
-assets;задания, копии, каталог носителей
+critical_function;проверка учётной записи и выдача сеанса
+assets;учётные записи, роли, сеансы

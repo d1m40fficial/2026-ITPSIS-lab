@@ -9,3 +9,6 @@ _qa/
 .tmp/
 __pycache__/
 *.pyc
+config/access-codes.json
+config/access-codes.txt
+/access-codes.txt

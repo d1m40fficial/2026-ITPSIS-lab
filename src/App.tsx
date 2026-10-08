@@ -7,25 +7,28 @@ import {
   ClipboardCheck,
   Database,
   Download,
-  ExternalLink,
   FileText,
   GraduationCap,
   Home as HomeIcon,
+  KeyRound,
   Layers3,
   ListChecks,
   Search,
   ShieldCheck,
   Target,
 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import type { FormEvent } from 'react'
 import { courseConfig } from './config'
 import labsPayload from './data/labs.json'
+import { labCode, labKey, needsCode, tryCode, unlock, useAccessFile } from './lib/access'
+import type { AccessFile } from './lib/access'
 import { resolveLab } from './lib/resolveLab'
 type StepGuide = { data:string; result:string; check:string }
 
 import {personalizeText} from './lib/personalize'
 
-import {SiteControls, usePreferences, PreferencesProvider} from './Preferences'
+import {SiteControls} from './Preferences'
 import subjectAreasPayload from './data/subject-areas.json'
 import type { DataTable, Lab, QualityProfile, SubjectArea } from './types'
 
@@ -48,17 +51,30 @@ function useRoute() {
 function CourseApp() {
   const route = useRoute()
   const lab = route.kind === 'lab' ? labs.find((item) => item.slug === route.slug) : undefined
+  const access = useAccessFile()
+  const [granted, setGranted] = useState(false)
   const [subjectAreaId, setSubjectAreaId] = useState(() => {
     const saved = Number(window.localStorage.getItem('itpsis-subject-area'))
     return subjectAreas.some(a=>a.id===saved)?saved:subjectAreas[0].id
   })
   const subjectArea = subjectAreas.find((item) => item.id === subjectAreaId) ?? subjectAreas[0]
   const profile = profiles.find((item) => item.id === subjectArea.profileId) ?? profiles[0]
+  const locked = lab ? access !== undefined && needsCode(access, lab.number) : false
 
   const selectSubjectArea = (id: number) => {
     setSubjectAreaId(id)
     window.localStorage.setItem('itpsis-subject-area', String(id))
   }
+
+  const enterWithCode = useCallback(async (code: string) => {
+    if (!lab) return true
+    if (await tryCode(lab.number, code)) {
+      unlock(labKey(lab.number))
+      setGranted(true)
+      return true
+    }
+    return false
+  }, [lab])
 
   useEffect(() => {
     const skipLink = document.querySelector<HTMLAnchorElement>('.skip-link')
@@ -81,9 +97,42 @@ function CourseApp() {
     window.scrollTo({ top: 0, behavior: 'instant' })
   }, [lab, route.kind])
 
-  if (route.kind === 'lab' && lab) return <><LabPage lab={lab} subjectArea={subjectArea} profile={profile} onSubjectAreaChange={selectSubjectArea} /></>
-  if (route.kind === 'lab') return <NotFound />
-  return <><SiteControls /><Home subjectArea={subjectArea} profile={profile} onSubjectAreaChange={selectSubjectArea} /></>
+  if (route.kind === 'lab' && !lab) return <NotFound />
+  if (lab && locked && !granted) return <AccessGate lab={lab} onSubmit={enterWithCode} />
+  if (lab) return <LabPage lab={lab} subjectArea={subjectArea} profile={profile} onSubjectAreaChange={selectSubjectArea} />
+  return <Home subjectArea={subjectArea} profile={profile} onSubjectAreaChange={selectSubjectArea} access={access} />
+}
+
+function AccessGate({ lab, onSubmit }: { lab: Lab; onSubmit: (code: string) => Promise<boolean> }) {
+  const [code, setCode] = useState('')
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+  const submit = async (event: FormEvent) => {
+    event.preventDefault()
+    setBusy(true)
+    setError('')
+    if (!(await onSubmit(code))) setError('Код не подходит. Проверьте его и попробуйте ещё раз.')
+    setBusy(false)
+  }
+  return (
+    <div className="lab-shell">
+      <header className="site-header"><Brand /></header>
+      <main id="main-content" className="access-gate" tabIndex={-1}>
+        <div className="access-card">
+          <p className="eyebrow">Доступ по коду</p>
+          <h1>{courseConfig.code}-{labCode(lab.number)}</h1>
+          <h2>{lab.title}</h2>
+          <p>Работу открывает код преподавателя. Код вводится один раз и запоминается на этом устройстве на неделю.</p>
+          <form onSubmit={submit}>
+            <label className="access-field">Код доступа<input autoFocus autoComplete="off" spellCheck={false} value={code} onChange={(event) => setCode(event.target.value)} /></label>
+            {error && <p className="package-error" role="alert">{error}</p>}
+            <button className="button primary" type="submit" disabled={busy || !code.trim()}><KeyRound aria-hidden="true" size={18} /> {busy ? 'Проверяем…' : 'Открыть работу'}</button>
+          </form>
+          <a className="summary-link" href="#/"><HomeIcon aria-hidden="true" size={15} /> Ко всем работам</a>
+        </div>
+      </main>
+    </div>
+  )
 }
 
 function Brand() {
@@ -98,35 +147,34 @@ function Brand() {
   )
 }
 
-function Home({ subjectArea, profile, onSubjectAreaChange }: { subjectArea: SubjectArea; profile: QualityProfile; onSubjectAreaChange: (id: number) => void }) {
+function Home({ subjectArea, profile, onSubjectAreaChange, access }: { subjectArea: SubjectArea; profile: QualityProfile; onSubjectAreaChange: (id: number) => void; access: AccessFile | undefined }) {
   const [query, setQuery] = useState('')
-  const [semester, setSemester] = useState<string>('all')
-  const preferences=usePreferences()
+  const [block, setBlock] = useState<string>('all')
   const visibleLabs = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase('ru-RU')
     return labs.filter((lab) => {
-      const matchesSemester = semester === 'all' || lab.semester === Number(semester)
+      const matchesBlock = block === 'all' || lab.block === Number(block)
       const haystack = `${lab.number} ${lab.title} ${lab.topicCode} ${lab.topicTitle} ${lab.practicalResult}`.toLocaleLowerCase('ru-RU')
-      return matchesSemester && (!normalized || haystack.includes(normalized))
+      return matchesBlock && (!normalized || haystack.includes(normalized))
     })
-  }, [query, semester])
+  }, [query, block])
 
   return (
     <div className="site-shell">
       <header className="site-header">
         <Brand />
-
+        <SiteControls />
       </header>
 
       <main id="main-content" tabIndex={-1}>
         <section className="hero" aria-labelledby="course-title">
           <div className="hero-copy">
-            <p className="eyebrow">{new Set(labs.map(l=>l.semester)).size} семестра · {labs.length} лабораторных работ · {labs.reduce((sum,l)=>sum+l.points,0)} баллов</p>
+            <p className="eyebrow">{courseConfig.blocks.length} учебных блока · {labs.length} лабораторных работ</p>
             <h1 id="course-title">{courseConfig.heroTitle} <span>{courseConfig.heroAccent}</span></h1>
             <p className="hero-lead">
               {courseConfig.slogan}
             </p>
-            <div className="hero-teacher"><span>Преподаватель</span><strong>{preferences.profile.name||'ФИО преподавателя'}</strong><p>{preferences.profile.position||'Должность'}</p><p>{preferences.profile.department||'Кафедра или лаборатория'}</p></div>
+            <div className="hero-teacher"><span>Преподаватель</span><strong>{courseConfig.teacher}</strong></div>
           </div>
           <div className="hero-visual" aria-hidden="true">
             <div className="hero-chevron" />
@@ -138,10 +186,9 @@ function Home({ subjectArea, profile, onSubjectAreaChange }: { subjectArea: Subj
           <div className="section-heading">
             <p className="eyebrow">Структура курса</p>
             <h2 id="blocks-title">{courseConfig.blocksTitle}</h2>
-            <p>{courseConfig.blocksDescription}</p>
           </div>
           <div className="block-grid">
-            {courseConfig.semesters.map((sem,i)=>{const group=labs.filter(l=>l.semester===sem);return <BlockCard key={sem} block={i+1} title={group[0]?.blockTitle||'Учебный блок'} semester={sem} count={group.length} points={group.reduce((n,l)=>n+l.points,0)} icon={i===0?<Database/>:<ShieldCheck/>}/>})}
+            {courseConfig.blocks.map((item)=>{const group=labs.filter(l=>l.block===item.block);return <BlockCard key={item.block} block={item.block} title={group[0]?.blockTitle||'Учебный блок'} count={group.length} description={item.description} icon={item.block===1?<Database/>:<ShieldCheck/>}/>})}
           </div>
         </section>
 
@@ -163,49 +210,48 @@ function Home({ subjectArea, profile, onSubjectAreaChange }: { subjectArea: Subj
               <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Номер, тема или практический результат" />
             </label>
             <fieldset className="semester-filter">
-              <legend className="sr-only">Фильтр по семестру</legend>
-              {['all', ...courseConfig.semesters.map(String)].map((value) => (
-                <button key={value} type="button" className={semester === value ? 'active' : ''} onClick={() => setSemester(value)} aria-pressed={semester === value}>
-                  {value === 'all' ? 'Все' : `${value} семестр`}
+              <legend className="sr-only">Фильтр по учебному блоку</legend>
+              {['all', ...courseConfig.blocks.map((item) => String(item.block))].map((value) => (
+                <button key={value} data-block={value} type="button" className={block === value ? 'active' : ''} onClick={() => setBlock(value)} aria-pressed={block === value}>
+                  {value === 'all' ? 'Все' : `Блок ${value}`}
                 </button>
               ))}
             </fieldset>
-            {preferences.materials?<a className="button secondary" href={preferences.materials} target="_blank" rel="noreferrer"><BookOpen size={18}/>Материалы<ExternalLink size={16}/></a>:<button className="button secondary" onClick={preferences.openSettings}><BookOpen size={18}/>Добавить ссылку на материалы</button>}
           </div>
 
           {visibleLabs.length ? (
             <div className="lab-grid">
-              {visibleLabs.map((lab) => <LabCard key={lab.number} lab={lab} area={subjectArea} profile={profile} />)}
+              {visibleLabs.map((lab) => <LabCard key={lab.number} lab={lab} access={access} />)}
             </div>
           ) : (
             <div className="empty-state">
               <Search aria-hidden="true" />
               <h3>Ничего не найдено</h3>
               <p>Измените поисковый запрос или сбросьте фильтры.</p>
-              <button type="button" className="button secondary" onClick={() => { setQuery(''); setSemester('all') }}>Сбросить фильтры</button>
+              <button type="button" className="button secondary" onClick={() => { setQuery(''); setBlock('all') }}>Сбросить фильтры</button>
             </div>
           )}
         </section>
 
-        <LmsRules />
+        <SubmissionRules />
       </main>
 
     </div>
   )
 }
 
-function BlockCard({ block, title, semester, count, points, icon }: { block: number; title: string; semester: number; count: number; points: number; icon: React.ReactNode }) {
+function BlockCard({ block, title, count, description, icon }: { block: number; title: string; count: number; description: string; icon: React.ReactNode }) {
   return (
     <article className={`block-card block-${block}`}>
       <div className="block-icon">{icon}</div>
-      <p className="eyebrow">Блок {block} · {semester} семестр</p>
+      <p className="eyebrow">Блок {block}</p>
       <h3>{title}</h3>
+      <p className="block-description">{description}</p>
       <div className="block-stats">
         <span><strong>{count}</strong> работ</span>
-        <span><strong>{points}</strong> баллов</span>
       </div>
       <button type="button" className="text-link" onClick={() => {
-        const control = document.querySelector<HTMLButtonElement>(`.semester-filter button:nth-of-type(${courseConfig.semesters.indexOf(semester)+2})`)
+        const control = document.querySelector<HTMLButtonElement>(`.semester-filter button[data-block="${block}"]`)
         control?.click()
         document.getElementById('labs')?.scrollIntoView({ behavior: 'smooth' })
       }}>Показать работы <ChevronRight aria-hidden="true" size={17} /></button>
@@ -213,12 +259,16 @@ function BlockCard({ block, title, semester, count, points, icon }: { block: num
   )
 }
 
-function LabCard({ lab,area,profile }: { lab: Lab;area:SubjectArea;profile:QualityProfile }) {
+function LabCard({ lab, access }: { lab: Lab; access: AccessFile | undefined }) {
+  const [locked, setLocked] = useState(false)
+  useEffect(() => {
+    setLocked(Boolean(access) && needsCode(access, lab.number))
+  }, [access, lab.number])
   return (
     <article className="lab-card">
       <div className="lab-card-top">
-        <span className="lab-number">{courseConfig.code}-ЛР{lab.slug}</span>
-        <span className="lab-meta"><span className="semester-pill">{lab.semester} семестр</span><span>{lab.points} {pluralizePoints(lab.points)}</span></span>
+        <span className="lab-number">{courseConfig.code}-{labCode(lab.number)}</span>
+        {locked && <span className="code-pill"><KeyRound aria-hidden="true" size={14} /> По коду</span>}
       </div>
       <p className="topic-line">Тема {lab.topicCode} · {lab.topicTitle}</p>
       <h3>{lab.title}</h3>
@@ -227,31 +277,25 @@ function LabCard({ lab,area,profile }: { lab: Lab;area:SubjectArea;profile:Quali
       </div>
       <div className="lab-card-actions">
         <a className="button primary" href={`#/lab/${lab.slug}`}>Открыть работу <ArrowRight aria-hidden="true" size={17} /></a>
-        <DownloadButton labs={[lab]} area={area} profile={profile} compact/>
       </div>
     </article>
   )
 }
 
-function LmsRules() {
+function SubmissionRules() {
   const steps = [
     'Скачайте архив лабораторной работы для своего варианта и откройте шаблон Word.',
     'Выполните задание по выданным исходным данным.',
     'Заполните отчёт и удалите все серые подсказки.',
+    'Оформите отчёт под нормоконтроль.',
     'Сохраните результат одним файлом .docx с рекомендуемым именем.',
-    'Откройте соответствующее задание лабораторной работы в LMS.',
-    'Прикрепите подготовленный файл к заданию в LMS.',
-    'Откройте отправку и убедитесь, что файл действительно прикреплён.',
+    'Показать результаты работы преподавателю.',
   ]
   return (
-    <section className="lms-section" id="lms" aria-labelledby="lms-title">
+    <section className="lms-section" id="submission" aria-labelledby="submission-title">
       <div>
-        <p className="eyebrow">Единственное место сдачи</p>
-        <h2 id="lms-title">Один отчёт — одна отправка в LMS</h2>
-        <p>Сайт не принимает файлы и не проверяет ответы. Итоговый материал каждой работы — один документ Word.</p>
-        {courseConfig.lmsUrl&&<a className="button primary" href={courseConfig.lmsUrl} target="_blank" rel="noreferrer">
-          Открыть LMS <ExternalLink aria-hidden="true" size={17} />
-        </a>}
+        <h2 id="submission-title">Одна работа — один документ Word</h2>
+        <p>Сайт не принимает файлы и не проверяет ответы. Результаты каждой работы сдаются преподавателю.</p>
       </div>
       <ol>{steps.map((step) => <li key={step}>{step}</li>)}</ol>
     </section>
@@ -276,11 +320,11 @@ function LabPage({ lab, subjectArea, profile, onSubjectAreaChange }: { lab: Lab;
             <nav className="lab-breadcrumb" aria-label="Навигация по курсу">
               <a href="#/"><ArrowLeft aria-hidden="true" size={17} /> Каталог</a>
               <span aria-hidden="true">/</span>
-              <span>{courseConfig.code}_ЛР{lab.slug}</span>
+              <span>{courseConfig.code}-{labCode(lab.number)}</span>
             </nav>
             <div className="lab-hero-grid">
               <div className="lab-hero-copy">
-                <p className="lab-eyebrow"><span className="semester-pill">{lab.semester} семестр</span><span>Лабораторная работа {lab.semesterLabNumber}</span></p>
+                <p className="lab-eyebrow"><span className="semester-pill">Лабораторная работа {lab.number}</span></p>
                 <h1 id="lab-title">{lab.title}</h1>
                 <div className="lab-result-line">
                   <span>Результат работы</span>
@@ -313,7 +357,7 @@ function LabPage({ lab, subjectArea, profile, onSubjectAreaChange }: { lab: Lab;
               </div>
               <p className="continuity-note"><strong>Сохраните полученные результаты:</strong> они пригодятся в следующих работах этого варианта. {methodology.sequence.previous}</p><h3>Материалы текущей работы</h3>
               <Checklist items={[
-                `Архив ЛР ${lab.slug}, вариант ${subjectArea.code}: задание, шаблон для заполнения и данные только этой работы`,
+                `Архив ${courseConfig.code}-${labCode(lab.number)}, вариант ${subjectArea.code}: задание, шаблон для заполнения и данные только этой работы`,
                 `таблицы, правила, ограничения и идентификаторы из раздела «Пояснение к задаче по предметной области»`,
                 `редактируемый шаблон ${lab.reportFile}`,
               ]} />
@@ -378,26 +422,21 @@ function LabPage({ lab, subjectArea, profile, onSubjectAreaChange }: { lab: Lab;
 
             </ContentSection>
 
-            <ContentSection id="lms-submit" number="10" label="Отчёт и LMS" title="Требования к отчёту и сдаче" icon={<GraduationCap aria-hidden="true" />}>
+            <ContentSection id="report" number="10" label="Отчёт" title="Требования к отчёту" icon={<GraduationCap aria-hidden="true" />}>
               <p><strong>Один заполненный редактируемый DOCX-файл.</strong></p><h3>Требования к Word-файлу</h3><Checklist items={lab.wordRequirements.map(labText)} />
               <p className="filename"><strong>Рекомендуемое имя:</strong> <code>{lab.recommendedFileName}</code></p>
+              <h3>Порядок сдачи</h3>
               <ol className="lms-steps">{lab.lmsSteps.map((step) => <li key={step}>{step}</li>)}</ol>
               <div className="submission-actions">
                 <a className="button primary" href={reportUrl} download><Download aria-hidden="true" size={18} /> Скачать редактируемый DOCX</a>
-                {courseConfig.lmsUrl&&<a className="button secondary" href={courseConfig.lmsUrl} target="_blank" rel="noreferrer">Перейти в LMS <ExternalLink aria-hidden="true" size={17} /></a>}
               </div>
             </ContentSection>
-
-            <nav className="lab-pager" aria-label="Соседние лабораторные работы">
-              {previous ? <a href={`#/lab/${previous.slug}`}><ArrowLeft aria-hidden="true" /> <span><small>Предыдущая</small>ЛР {previous.slug}</span></a> : <span />}
-              {next ? <a href={`#/lab/${next.slug}`}><span><small>Следующая</small>ЛР {next.slug}</span> <ArrowRight aria-hidden="true" /></a> : <span />}
-            </nav>
           </article>
 
           <aside className="lab-summary" aria-label="Краткая карточка работы">
             <p className="eyebrow">Карточка работы</p>
             <dl>
-              <div><dt>ID</dt><dd>{courseConfig.code}-ЛР{lab.slug}</dd></div>
+              <div><dt>ID</dt><dd>{courseConfig.code}-{labCode(lab.number)}</dd></div>
               <div><dt>Результат</dt><dd>{lab.practicalResult}</dd></div>
               <div><dt>Учебный блок</dt><dd>{lab.blockTitle}</dd></div>
             </dl>
@@ -410,6 +449,11 @@ function LabPage({ lab, subjectArea, profile, onSubjectAreaChange }: { lab: Lab;
             <a className="summary-link" href="#/"><HomeIcon aria-hidden="true" size={15} /> Ко всем работам</a>
           </aside>
         </div>
+
+        <nav className="lab-pager" aria-label="Соседние лабораторные работы">
+          {previous ? <a className="lab-pager-prev" href={`#/lab/${previous.slug}`}><ArrowLeft aria-hidden="true" /> <span><small>Предыдущая работа</small>{courseConfig.code}-{labCode(previous.number)}</span></a> : <span />}
+          {next ? <a className="lab-pager-next" href={`#/lab/${next.slug}`}><span><small>Следующая работа</small>{courseConfig.code}-{labCode(next.number)}</span> <ArrowRight aria-hidden="true" /></a> : <span />}
+        </nav>
       </main>
     </div>
   )
@@ -473,12 +517,6 @@ function NotFound() {
   return <main id="main-content" className="not-found" tabIndex={-1}><FileText aria-hidden="true" size={48} /><h1>Работа не найдена</h1><p>Проверьте номер в ссылке или вернитесь в каталог.</p><a className="button primary" href="#/">Открыть каталог</a></main>
 }
 
-function pluralizePoints(points: number) {
-  if (points === 1) return 'балл'
-  if (points >= 2 && points <= 4) return 'балла'
-  return 'баллов'
-}
-
 async function bundle(selected:Lab[],area:SubjectArea,profile:QualityProfile){const [{downloadBundle},{renderToStaticMarkup}]=await Promise.all([import('./lib/labPackage'),import('react-dom/server')]);return downloadBundle({labs:selected.map(l=>resolveLab(l,area)),area,profile,renderPage:lab=>renderToStaticMarkup(<LabPage lab={lab} subjectArea={area} profile={profile} onSubjectAreaChange={()=>{}} />)})}
-function DownloadButton({labs:selected,area,profile,compact=false,all=false}:{labs:Lab[];area:SubjectArea;profile:QualityProfile;compact?:boolean;all?:boolean}){const [busy,setBusy]=useState(false);const [error,setError]=useState('');return <><button className={compact?'card-download':all?'button secondary':'button primary'} disabled={busy} aria-label={compact?`Скачать лабораторную работу ЛР ${selected[0].slug}`:undefined} onClick={async()=>{setBusy(true);setError('');try{await bundle(selected,area,profile)}catch{setError('Не удалось подготовить архив. Повторите скачивание.')}finally{setBusy(false)}}}><Download size={18}/>{compact?'':busy?'Готовим архив…':all?'Комплект всех работ для варианта':'Скачать лабораторную работу'}</button>{error&&<p role="alert">{error}</p>}</>}
-export function App(){return <PreferencesProvider><CourseApp/></PreferencesProvider>}
+function DownloadButton({labs:selected,area,profile}:{labs:Lab[];area:SubjectArea;profile:QualityProfile}){const [busy,setBusy]=useState(false);const [error,setError]=useState('');return <><button className="button primary" disabled={busy} onClick={async()=>{setBusy(true);setError('');try{await bundle(selected,area,profile)}catch{setError('Не удалось подготовить архив. Повторите скачивание.')}finally{setBusy(false)}}}><Download size={18}/>{busy?'Готовим архив…':'Скачать лабораторную работу'}</button>{error&&<p role="alert">{error}</p>}</>}
+export function App(){return <CourseApp/>}

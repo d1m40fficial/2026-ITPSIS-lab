@@ -1,7 +1,7 @@
 field;value
 variant;28
 code;SA28
-subject_area;Служба идентификации
+subject_area;Электронный архив документов
 system_code;ITPSIS-SA28
-critical_function;проверка учётной записи и выдача сеанса
-assets;учётные записи, роли, сеансы
+critical_function;поиск и выдача неизменённого документа
+assets;документы, метаданные, подписи

@@ -1,7 +1,7 @@
 field;value
 variant;15
 code;SA15
-subject_area;Очередь преобразования документов
+subject_area;Компьютерный класс
 system_code;ITPSIS-SA15
-critical_function;преобразование и сохранение учебного файла
-assets;очередь, исходные файлы, результаты
+critical_function;вход пользователя и запуск учебной среды
+assets;рабочие станции, образы, профили

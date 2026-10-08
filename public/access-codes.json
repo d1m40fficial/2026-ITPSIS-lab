@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "courseId": "2026-ITPSIS-lab",
+  "labs": {
+    "1": [
+      "c6db655e113583dbf9cace73a372d3f4576e5cf1cafa9f4dcc71a8d6551c0ffd"
+    ],
+    "2": [
+      "3fb1bef327637282f5b9979d7c959cb68f5af9e8578898ff6420e8a29b1cd686"
+    ],
+    "3": [
+      "3a88c0190ef2b5ffc9163ad5f4f6a68c084ea0cd240d8d82ff232fe4c76775d9"
+    ],
+    "4": [
+      "da0f7dd00220fe5cf33f56907e94556a758d5470a3ea0026c63de90e33f205a2"
+    ],
+    "5": [
+      "de7f027e7c25e009ec930c9c074eb585af8a6d05a982351ca0873b97c2983e0a"
+    ],
+    "6": [
+      "292f46f5dd607db357cf5fc064eda0d294ccd595dc297121c75d06be4ea9b0c0"
+    ],
+    "7": [
+      "294c878e2b50283ba83d4a7541e75b6defdb9fbfdffbbf107afa8ea8e05f4ca0"
+    ],
+    "8": [
+      "7999fb22ae33d5caaf75015bd4d0f6cec8b4b423b062d5f399e9f329e339750b"
+    ],
+    "9": [
+      "832d58019d2349e59fa1116cc7a6e1f83220f7abe483ba87a23cdb4b91cd1e71"
+    ],
+    "10": [
+      "f91d5c4d0832cfedc340e513071fd3be5bf341651ea712b9582a9a4bbb2d2cf3"
+    ],
+    "11": [
+      "9600124341a8b4b1d8c623e2e30c1aa9b5814a9b59335d6d1123351935c1ddec"
+    ],
+    "12": [
+      "36e64b758526d8e10524b63a84df7179c07a48c7d3ebbbe24a1801fa10e6ca64"
+    ]
+  }
+}

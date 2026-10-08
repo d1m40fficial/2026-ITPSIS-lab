@@ -1,7 +1,7 @@
 field;value
 variant;16
 code;SA16
-subject_area;Компьютерный класс
+subject_area;Рабочее место преподавателя
 system_code;ITPSIS-SA16
-critical_function;вход пользователя и запуск учебной среды
-assets;рабочие станции, образы, профили
+critical_function;доступ к учебным материалам и ведомостям
+assets;документы, профиль, журналы
