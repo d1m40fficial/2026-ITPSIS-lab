@@ -25,6 +25,20 @@ test('главная страница показывает структуру к
   await expect(page.locator('.variant-picker')).toContainText('SA01 · Электронное расписание')
   await expect(page.locator('input[type="file"]')).toHaveCount(0)
   await expect(page.locator('footer')).toHaveCount(0)
+
+  // Кнопки темы, справки и полного экрана прижаты к правому краю шапки.
+  const controlsOffset = await page.evaluate(() => {
+    const header = document.querySelector('.site-header')!
+    const style = getComputedStyle(header)
+    const contentRight = header.clientWidth - parseFloat(style.paddingRight)
+    return document.querySelector('.course-controls')!.getBoundingClientRect().right - contentRight
+  })
+  expect(Math.abs(controlsOffset)).toBeLessThanOrEqual(1)
+
+  // Карточки блоков компактны и одинаковой высоты: без пустого места снизу.
+  const cardHeights = await page.locator('.block-card').evaluateAll((cards) => cards.map((card) => Math.round(card.getBoundingClientRect().height)))
+  expect(cardHeights[0]).toBe(cardHeights[1])
+  expect(cardHeights[0]).toBeLessThan(420)
 })
 
 test('на главной нет семестров, баллов, LMS и кнопок служебного доступа', async ({ page }) => {
